@@ -1,4 +1,6 @@
-# CDDA Termux 构建器
+# CDDA Termux 构建器（中文版）
+
+> 本仓库为中文版本，英文版请查看 `main` 分支。
 
 在 Android 手机（通过 Termux）上一键构建 Cataclysm: Dark Days Ahead (CDDA) 游戏客户端，生成 Android APK。
 
@@ -23,8 +25,8 @@
 ## 快速开始
 
 ```bash
-# 克隆本仓库
-git clone https://github.com/dwvwvvwvwb/cdda-termux-builder.git
+# 克隆本仓库（中文版）
+git clone -b zh-CN https://github.com/dwvwvvwvwb/cdda-termux-builder.git
 cd cdda-termux-builder/scripts
 
 # 赋予执行权限
