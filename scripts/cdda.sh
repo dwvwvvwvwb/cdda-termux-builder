@@ -6,26 +6,26 @@ source "$SCRIPT_DIR/cdda-common.sh"
 
 show_help() {
     cat <<EOF
-Usage: $0 [command] [options]
+用法: $0 [命令] [选项]
 
-Commands:
-  setup [--yes]     Install system dependencies, NDK, and SDK.
-  config [--yes] [tag]   Configure project (tag can be "latest" or a specific tag).
-  build [--clean] [--yes] Build APK (--clean cleans before build).
-  all [--yes] [tag]       Run setup, config, build in sequence.
-  clean                   Only clean build artifacts.
-  help                    Show this help.
+命令:
+  setup [--yes]    安装系统依赖和 SDK/NDK（首次运行）
+  config [--yes] [tag]  配置项目（tag 可以是具体标签名或 "latest" 获取最新）
+  build [--clean] [--yes] 构建 APK（--clean 可清理后构建）
+  all [--yes] [tag]      依次执行 setup, config, build
+  clean                  仅清理构建产物
+  help                   显示帮助
 
-Environment:
-  WORK_DIR        Source directory (default: ~/Cataclysm-DDA)
-  BUILD_VARIANT   release or debug (default: release)
-  NOTIFY          true/false (default: true)
+环境变量:
+  WORK_DIR        源码目录（默认 ~/Cataclysm-DDA）
+  BUILD_VARIANT   构建变体 release/debug（默认 release）
+  NOTIFY          是否发送通知 true/false（默认 true）
 
-Examples:
-  $0 all --yes latest                # Full build from latest release, auto-confirm
-  $0 config --yes cdda-experimental-2026-03-24-2310  # Switch to a specific tag
-  $0 build --clean                   # Clean then build
-  $0 clean                           # Clean only
+示例:
+  $0 all --yes latest         # 从最新发布版本开始完整构建（自动确认）
+  $0 config --yes cdda-experimental-2026-03-24-2310  # 切换到指定标签并配置（自动覆盖）
+  $0 build --clean            # 先清理再构建
+  $0 clean                    # 仅清理构建产物
 EOF
 }
 

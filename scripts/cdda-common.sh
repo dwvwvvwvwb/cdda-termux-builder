@@ -6,10 +6,10 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-log_info()  { echo -e "${GREEN}[INFO]${NC} $1"; }
-log_warn()  { echo -e "${YELLOW}[WARN]${NC} $1"; }
-log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
-log_step()  { echo -e "${BLUE}[STEP]${NC} $1"; }
+log_info()  { echo -e "${GREEN}[信息]${NC} $1"; }
+log_warn()  { echo -e "${YELLOW}[警告]${NC} $1"; }
+log_error() { echo -e "${RED}[错误]${NC} $1"; }
+log_step()  { echo -e "${BLUE}[步骤]${NC} $1"; }
 
 ANDROID_HOME="${ANDROID_HOME:-$HOME/android-sdk}"
 ANDROID_NDK_HOME="${ANDROID_NDK_HOME:-$HOME/android-ndk-r29}"
@@ -33,7 +33,7 @@ retry_command() {
         else
             retry=$((retry + 1))
             if [ $retry -lt $max_retries ]; then
-                log_warn "Command failed, retrying $retry/$max_retries ..."
+                log_warn "命令失败，重试 $retry/$max_retries ..."
                 sleep 3
             fi
         fi
@@ -51,7 +51,7 @@ download_with_retry() {
             return 0
         else
             retry=$((retry + 1))
-            log_warn "Download failed, retrying $retry/$max_retries ..."
+            log_warn "下载失败，重试 $retry/$max_retries ..."
             sleep 3
         fi
     done
@@ -67,24 +67,24 @@ verify_checksum_and_retry() {
 
     while [ $retry -lt $max_retries ]; do
         if [ ! -f "$file" ]; then
-            log_info "File does not exist, downloading..."
+            log_info "文件不存在，开始下载..."
             if ! download_with_retry "$url" "$file"; then
-                log_warn "Download failed, retry $((retry+1))/$max_retries"
+                log_warn "下载失败，重试 $((retry+1))/$max_retries"
                 retry=$((retry + 1))
                 continue
             fi
         fi
 
-        log_info "Verifying SHA256..."
+        log_info "校验 SHA256..."
         echo "$expected_sha256  $file" | sha256sum -c -
         if [ $? -eq 0 ]; then
             return 0
         else
-            log_warn "SHA256 mismatch, deleting corrupted file..."
+            log_warn "SHA256 校验失败，删除损坏文件..."
             rm -f "$file"
             retry=$((retry + 1))
             if [ $retry -lt $max_retries ]; then
-                log_info "Re-downloading ($retry/$max_retries)..."
+                log_info "重新下载 ($retry/$max_retries)..."
             fi
         fi
     done
@@ -98,7 +98,7 @@ fix_ndk_clangpp() {
         if [ ! -x "$clangpp" ] || [ ! -s "$clangpp" ]; then
             rm -f "$clangpp"
             ln -s clang "$clangpp"
-            log_info "Fixed $clangpp"
+            log_info "已修复 $clangpp"
         fi
         chmod +x "$ndk_bin"/*
     fi
@@ -109,9 +109,9 @@ check_disk_space() {
     local yes_mode="${2:-false}"
     local available_mb=$(df -m "$HOME" | awk 'NR==2 {print $4}')
     if [ "$available_mb" -lt "$required_mb" ]; then
-        log_warn "Available space ${available_mb}MB is less than recommended ${required_mb}MB"
+        log_warn "可用空间 ${available_mb}MB，低于建议值 ${required_mb}MB"
         if [ "$yes_mode" = false ]; then
-            read -p "Continue anyway? (y/N) " answer
+            read -p "是否继续？(y/N) " answer
             [[ ! "$answer" =~ ^[Yy]$ ]] && exit 1
         fi
     fi
@@ -120,7 +120,7 @@ check_disk_space() {
 find_build_tools_version() {
     local build_tools_dir="$ANDROID_HOME/build-tools"
     if [ ! -d "$build_tools_dir" ]; then
-        log_error "SDK build-tools directory does not exist: $build_tools_dir"
+        log_error "SDK build-tools 目录不存在: $build_tools_dir"
         return 1
     fi
     local versions=()
@@ -130,7 +130,7 @@ find_build_tools_version() {
         fi
     done
     if [ ${#versions[@]} -eq 0 ]; then
-        log_error "No build-tools directory containing aapt2 found"
+        log_error "未找到包含 aapt2 的 build-tools 目录"
         return 1
     fi
     printf "%s\n" "${versions[@]}" | sort -V | tail -1
@@ -139,7 +139,7 @@ find_build_tools_version() {
 find_platform_version() {
     local platforms_dir="$ANDROID_HOME/platforms"
     if [ ! -d "$platforms_dir" ]; then
-        log_error "SDK platforms directory does not exist: $platforms_dir"
+        log_error "SDK platforms 目录不存在: $platforms_dir"
         return 1
     fi
     local versions=()
@@ -149,7 +149,7 @@ find_platform_version() {
         fi
     done
     if [ ${#versions[@]} -eq 0 ]; then
-        log_error "No valid platform directory found"
+        log_error "未找到有效的 platform 目录"
         return 1
     fi
     printf "%s\n" "${versions[@]}" | sort -n | tail -1

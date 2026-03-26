@@ -50,17 +50,17 @@ retry_build() {
         else
             retry=$((retry + 1))
             if [ $retry -lt $MAX_RETRY ]; then
-                log_warn "Build failed, retrying $retry/$MAX_RETRY ..."
+                log_warn "构建失败，重试 $retry/$MAX_RETRY ..."
                 sleep 3
             fi
         fi
     done
     if [ $success -eq 1 ]; then
-        log_info "Build succeeded!"
+        log_info "构建成功！"
         return 0
     else
-        log_error "Build failed after $MAX_RETRY retries"
-        send_notification "CDDA Build Failed" "Check logs" ""
+        log_error "重试 $MAX_RETRY 次后仍然失败"
+        send_notification "CDDA 构建失败" "请检查日志" ""
         return 1
     fi
 }
@@ -69,7 +69,7 @@ build_android_core() {
     [ -x "$WORK_DIR/android/gradlew" ] || chmod +x "$WORK_DIR/android/gradlew"
 
     if [ "$DO_CLEAN" = true ]; then
-        log_info "Cleaning..."
+        log_info "执行清理..."
         (cd "$WORK_DIR/android" && ./gradlew clean)
     fi
 
@@ -80,9 +80,9 @@ build_android_core() {
             java_path=$(readlink -f $(which java))
             JAVA_HOME=$(dirname $(dirname "$java_path"))
             export JAVA_HOME
-            log_info "Auto-set JAVA_HOME=$JAVA_HOME"
+            log_info "自动设置 JAVA_HOME=$JAVA_HOME"
         else
-            log_error "java not found, ensure openjdk is installed"
+            log_error "找不到 java 命令，请确保已安装 openjdk"
             return 1
         fi
     fi
@@ -103,13 +103,13 @@ build_android_core() {
 
     local aapt2_path="$ANDROID_HOME/build-tools/$build_tools_version/aapt2"
     if [ ! -x "$aapt2_path" ]; then
-        log_error "aapt2 not executable: $aapt2_path"
+        log_error "aapt2 不可执行: $aapt2_path"
         return 1
     fi
 
     clean_old_logs
     local build_log="${BUILD_LOGS_DIR}/build_android_$(date +%Y%m%d_%H%M%S).log"
-    log_info "Building $BUILD_VARIANT variant, log: $build_log"
+    log_info "开始构建 $BUILD_VARIANT 版本，日志: $build_log"
 
     ./gradlew "assemble${BUILD_VARIANT^}" \
         -Pandroid.aapt2FromMavenOverride="$aapt2_path" \
@@ -121,7 +121,7 @@ build_android_core() {
 
     local gradle_exit=${PIPESTATUS[0]}
     if [ $gradle_exit -ne 0 ]; then
-        log_error "Build failed, see log: $build_log"
+        log_error "构建失败，请查看日志: $build_log"
         return 1
     fi
 
@@ -140,12 +140,12 @@ build_android_core() {
     local apk_file=$(find "$apk_dir" -name "*.apk" -type f -size +1M 2>/dev/null | head -1)
 
     if [ -z "$apk_file" ]; then
-        log_error "No valid APK found (size >1MB)"
+        log_error "未找到有效的 APK 文件（大小 >1MB）"
         return 1
     fi
-    log_info "Build successful! APK location: $apk_file"
+    log_info "构建成功！APK 位置: $apk_file"
     local final_apk_dir=$(dirname "$apk_file")
-    send_notification "CDDA Build Complete" "APK generated" "$final_apk_dir"
+    send_notification "CDDA 构建完成" "APK 已生成" "$final_apk_dir"
     return 0
 }
 
