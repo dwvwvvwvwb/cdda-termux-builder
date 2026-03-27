@@ -33,16 +33,23 @@ if [ "$TAG" = "latest" ]; then
         log_error "curl and jq required to fetch latest tag, please run setup first"
         exit 1
     fi
-    response=$(curl -s -w "%{http_code}" "https://api.github.com/repos/CleverRaven/Cataclysm-DDA/releases?per_page=1")
+    response=$(curl -s -f -w "%{http_code}" --connect-timeout 10 --max-time 30 \
+        "https://api.github.com/repos/CleverRaven/Cataclysm-DDA/releases?per_page=1" 2>&1)
+    curl_exit=$?
+    if [ $curl_exit -ne 0 ]; then
+        log_error "Network request failed, please check your connection"
+        exit 1
+    fi
     http_code=$(echo "$response" | tail -n1)
     body=$(echo "$response" | sed '$d')
     if [ "$http_code" -ne 200 ]; then
         log_error "GitHub API request failed (HTTP $http_code)"
+        log_info "You can manually specify a tag: ./cdda.sh config <tag>"
         exit 1
     fi
     latest_tag=$(echo "$body" | jq -r '.[0].tag_name')
     if [ -z "$latest_tag" ] || [ "$latest_tag" = "null" ]; then
-        log_error "Failed to parse latest tag"
+        log_error "Failed to parse latest tag, check network or try again later"
         exit 1
     fi
     TAG="$latest_tag"
@@ -57,20 +64,23 @@ fi
 if [ -n "$TAG" ]; then
     log_info "Switching to tag $TAG ..."
     cd "$WORK_DIR"
-    if ! git diff-index --quiet HEAD --; then
-        log_warn "Local modifications detected"
-        if [ "$YES_MODE" = false ]; then
-            read -p "Force checkout (lose changes)? (y/N) " answer
-            if [[ ! "$answer" =~ ^[Yy]$ ]]; then
-                log_info "Aborted"
-                exit 0
-            fi
+    if ! git rev-parse -q --verify "refs/tags/$TAG" >/dev/null 2>&1; then
+        log_info "Tag not found locally, trying to fetch..."
+        if git fetch origin "tags/$TAG" --depth 1 2>/dev/null; then
+            log_info "Tag fetched successfully"
         else
-            log_info "Auto mode, forcing checkout"
+            log_error "Shallow clone cannot fetch tag $TAG."
+            log_error "This may happen if the tag is not in the latest commit history."
+            log_error "Please delete the directory '$WORK_DIR' and re-run, or do a full clone manually:"
+            log_error "  rm -rf '$WORK_DIR'"
+            log_error "  git clone https://github.com/CleverRaven/Cataclysm-DDA.git '$WORK_DIR'"
+            log_error "  cd '$WORK_DIR' && git fetch --tags && git checkout tags/$TAG"
+            exit 1
         fi
-        git checkout --force "tags/$TAG"
-    else
-        git checkout "tags/$TAG"
+    fi
+    if ! git checkout "tags/$TAG" 2>/dev/null; then
+        log_error "Failed to checkout tag $TAG, please verify the tag exists"
+        exit 1
     fi
 fi
 

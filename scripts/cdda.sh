@@ -30,6 +30,7 @@ EOF
 }
 
 YES_FLAG=""
+ARGS=()
 while [ $# -gt 0 ]; do
     case "$1" in
         --yes|-y)
@@ -37,15 +38,17 @@ while [ $# -gt 0 ]; do
             shift
             ;;
         *)
-            break
+            ARGS+=("$1")
+            shift
             ;;
     esac
 done
+set -- "${ARGS[@]}"
 
 case "$1" in
     setup)
         shift
-        "$SCRIPT_DIR/cdda-setup.sh" "$@" $YES_FLAG
+        "$SCRIPT_DIR/cdda-setup.sh" $YES_FLAG "$@"
         ;;
     config)
         shift

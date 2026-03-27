@@ -107,12 +107,26 @@ fix_ndk_clangpp() {
 check_disk_space() {
     local required_mb="${1:-15360}"
     local yes_mode="${2:-false}"
-    local available_mb=$(df -m "$HOME" | awk 'NR==2 {print $4}')
+    local available_kb=$(df -k "$HOME" 2>/dev/null | awk 'NR==2 {print $4}')
+    if [ -z "$available_kb" ]; then
+        log_warn "Cannot determine disk space, skipping check"
+        return 0
+    fi
+    local available_mb=$((available_kb / 1024))
     if [ "$available_mb" -lt "$required_mb" ]; then
         log_warn "Available space ${available_mb}MB is less than recommended ${required_mb}MB"
         if [ "$yes_mode" = false ]; then
+            set +e
             read -p "Continue anyway? (y/N) " answer
-            [[ ! "$answer" =~ ^[Yy]$ ]] && exit 1
+            local read_ret=$?
+            set -e
+            if [ $read_ret -ne 0 ]; then
+                log_error "Input read failed, exiting"
+                exit 1
+            fi
+            if [[ ! "$answer" =~ ^[Yy]$ ]]; then
+                exit 1
+            fi
         fi
     fi
 }
