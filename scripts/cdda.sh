@@ -29,7 +29,9 @@ show_help() {
 EOF
 }
 
+# 解析全局 --yes 参数
 YES_FLAG=""
+ARGS=()
 while [ $# -gt 0 ]; do
     case "$1" in
         --yes|-y)
@@ -37,15 +39,17 @@ while [ $# -gt 0 ]; do
             shift
             ;;
         *)
-            break
+            ARGS+=("$1")
+            shift
             ;;
     esac
 done
+set -- "${ARGS[@]}"  # 重新设置参数，过滤掉 --yes
 
 case "$1" in
     setup)
         shift
-        "$SCRIPT_DIR/cdda-setup.sh" "$@" $YES_FLAG
+        "$SCRIPT_DIR/cdda-setup.sh" $YES_FLAG "$@"
         ;;
     config)
         shift
