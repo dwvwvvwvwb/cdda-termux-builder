@@ -74,6 +74,20 @@ Examples
 BUILD_VARIANT=debug NOTIFY=false ./cdda.sh build
 ```
 
+## Signing the APK (Optional)
+
+To generate a signed APK, place a `keystore.properties` file in `Cataclysm-DDA/android/` before building.  
+Example:
+```
+
+storeFile=/path/to/keystore.jks
+storePassword=your_store_password
+keyAlias=your_key_alias
+keyPassword=your_key_password
+
+```
+The build will automatically sign the APK.
+
 How It Works
 
 1. Setup – installs git, make, clang, curl, jq, 7zip, gettext, openjdk-17, coreutils, which via pkg. Downloads and verifies NDK and SDK from lzhiyong/termux-ndk releases.
