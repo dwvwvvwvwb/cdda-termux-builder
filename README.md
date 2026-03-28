@@ -73,6 +73,20 @@ chmod +x *.sh
 BUILD_VARIANT=debug NOTIFY=false ./cdda.sh build
 ```
 
+## 签名 APK（可选）
+
+如需生成已签名的 APK，请在构建前将 `keystore.properties` 文件放入 `Cataclysm-DDA/android/` 目录。  
+文件内容示例：
+```
+
+storeFile=/path/to/keystore.jks
+storePassword=your_store_password
+keyAlias=your_key_alias
+keyPassword=your_key_password
+
+```
+构建时 Gradle 会自动读取并签名。
+
 工作原理
 
 1. 安装阶段 – 通过 pkg 安装 git、make、clang、curl、jq、7zip、gettext、openjdk-17、coreutils、which。从 lzhiyong/termux-ndk 下载并校验 NDK 和 SDK。
