@@ -30,13 +30,15 @@ done
 send_notification() {
     local title="$1"
     local content="$2"
-    local apk_dir="$3"
+    local apk_path="$3"
     if [ "$NOTIFY" = "true" ] && command -v termux-notification &>/dev/null; then
-        local cmd="termux-notification --title \"$title\" --content \"$content\" --priority high"
-        if [ -n "$apk_dir" ] && [ -d "$apk_dir" ]; then
-            cmd="$cmd --action \"cd $apk_dir && termux-open .\""
+        if [ -n "$apk_path" ] && [ -f "$apk_path" ] && command -v termux-share &>/dev/null; then
+            # 转义路径中的双引号，避免 shell 解析问题
+            local safe_path=$(echo "$apk_path" | sed 's/"/\\"/g')
+            termux-notification --title "$title" --content "$content" --priority high --action "termux-share \"$safe_path\""
+        else
+            termux-notification --title "$title" --content "$content" --priority high
         fi
-        eval "$cmd"
     fi
 }
 
@@ -145,7 +147,7 @@ build_android_core() {
     fi
     log_info "构建成功！APK 位置: $apk_file"
     local final_apk_dir=$(dirname "$apk_file")
-    send_notification "CDDA 构建完成" "APK 已生成" "$final_apk_dir"
+    send_notification "CDDA 构建完成" "APK 已生成" "$apk_file"
     return 0
 }
 
