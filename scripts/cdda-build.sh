@@ -126,24 +126,24 @@ build_android_core() {
         return 1
     fi
 
-    local apk_dir="app/build/outputs/apk"
+    local apk_file=""
     local variant_lower="${BUILD_VARIANT,,}"
-    if [ "$variant_lower" = "debug" ]; then
-        apk_dir="$apk_dir/debug"
-    else
-        local subdirs=($(ls -t "$apk_dir" 2>/dev/null | grep -E '^(stable|experimental)$' | head -1))
-        if [ -n "$subdirs" ]; then
-            apk_dir="$apk_dir/$subdirs/$variant_lower"
-        else
-            apk_dir="$apk_dir/$variant_lower"
-        fi
+
+    if [ -d "app/build/outputs/apk/experimental/$variant_lower" ]; then
+        apk_file=$(find "app/build/outputs/apk/experimental/$variant_lower" -name "*.apk" -type f -size +1M 2>/dev/null | head -1)
     fi
-    local apk_file=$(find "$apk_dir" -name "*.apk" -type f -size +1M 2>/dev/null | head -1)
+    if [ -z "$apk_file" ] && [ -d "app/build/outputs/apk/stable/$variant_lower" ]; then
+        apk_file=$(find "app/build/outputs/apk/stable/$variant_lower" -name "*.apk" -type f -size +1M 2>/dev/null | head -1)
+    fi
+    if [ -z "$apk_file" ]; then
+        apk_file=$(find "app/build/outputs/apk" -name "*.apk" -type f -size +1M 2>/dev/null | head -1)
+    fi
 
     if [ -z "$apk_file" ]; then
         log_error "No valid APK found (size >1MB)"
         return 1
     fi
+
     local apk_abs_path=$(realpath "$apk_file")
     log_info "Build successful! APK location: $apk_abs_path"
     send_notification "CDDA Build Complete" "APK generated" "$apk_abs_path"
