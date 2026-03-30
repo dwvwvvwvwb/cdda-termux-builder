@@ -144,9 +144,9 @@ build_android_core() {
         log_error "No valid APK found (size >1MB)"
         return 1
     fi
-    log_info "Build successful! APK location: $apk_file"
-    local final_apk_dir=$(dirname "$apk_file")
-    send_notification "CDDA Build Complete" "APK generated" "$apk_file"
+    local apk_abs_path=$(realpath "$apk_file")
+    log_info "Build successful! APK location: $apk_abs_path"
+    send_notification "CDDA Build Complete" "APK generated" "$apk_abs_path"
     return 0
 }
 
