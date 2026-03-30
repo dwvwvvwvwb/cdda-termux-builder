@@ -138,16 +138,17 @@ build_android_core() {
         else
             apk_dir="$apk_dir/$variant_lower"
         fi
-    fi
+    fi    
     local apk_file=$(find "$apk_dir" -name "*.apk" -type f -size +1M 2>/dev/null | head -1)
-
+    
     if [ -z "$apk_file" ]; then
         log_error "未找到有效的 APK 文件（大小 >1MB）"
         return 1
     fi
-    log_info "构建成功！APK 位置: $apk_file"
-    local final_apk_dir=$(dirname "$apk_file")
-    send_notification "CDDA 构建完成" "APK 已生成" "$apk_file"
+    # 转换为绝对路径
+    local apk_abs_path=$(realpath "$apk_file")
+    log_info "构建成功！APK 位置: $apk_abs_path"
+    send_notification "CDDA 构建完成" "APK 已生成" "$apk_abs_path"
     return 0
 }
 
