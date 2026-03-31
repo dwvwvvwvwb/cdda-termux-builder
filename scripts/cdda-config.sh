@@ -40,10 +40,10 @@ else
     log_info "更新到标签 $TAG ..."
     cd "$WORK_DIR"
     # 尝试浅拉取标签本身
-    if git fetch origin "+refs/tags/$TAG:refs/tags/$TAG" --depth 1 2>/dev/null; then
+    if git fetch origin "+refs/tags/$TAG:refs/tags/$TAG" --depth 1 ; then
         git checkout "tags/$TAG"
     # 若失败，尝试拉取标签指向的提交
-    elif git fetch origin "+refs/tags/$TAG^{}:refs/tags/$TAG" --depth 1 2>/dev/null; then
+    elif git fetch origin "+refs/tags/$TAG^{}:refs/tags/$TAG" --depth 1 ; then
         git checkout "tags/$TAG"
     else
         log_error "无法使用浅克隆获取标签 $TAG。"
