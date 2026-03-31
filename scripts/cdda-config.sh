@@ -42,10 +42,10 @@ else
     log_info "Updating to tag $TAG ..."
     cd "$WORK_DIR"
     # Try shallow fetch of the tag itself
-    if git fetch origin "+refs/tags/$TAG:refs/tags/$TAG" --depth 1 2>/dev/null; then
+    if git fetch origin "+refs/tags/$TAG:refs/tags/$TAG" --depth 1 ; then
         git checkout "tags/$TAG"
     # If that fails, try fetching the commit the tag points to
-    elif git fetch origin "+refs/tags/$TAG^{}:refs/tags/$TAG" --depth 1 2>/dev/null; then
+    elif git fetch origin "+refs/tags/$TAG^{}:refs/tags/$TAG" --depth 1 ; then
         git checkout "tags/$TAG"
     else
         log_error "Cannot fetch tag $TAG with shallow clone."
