@@ -66,7 +66,7 @@ case "$1" in
         ;;
     clean)
         shift
-        "$SCRIPT_DIR/cdda-build.sh" --clean
+        "$SCRIPT_DIR/cdda-build.sh" --clean-only
         ;;
     help|--help|-h)
         show_help

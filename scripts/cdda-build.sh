@@ -13,6 +13,10 @@ DO_CLEAN=false
 YES_MODE=false
 while [ $# -gt 0 ]; do
     case "$1" in
+        --clean-only)
+            DO_CLEAN_ONLY=true
+            shift
+            ;;
         --clean)
             DO_CLEAN=true
             shift
@@ -69,9 +73,14 @@ retry_build() {
 build_android_core() {
     [ -x "$WORK_DIR/android/gradlew" ] || chmod +x "$WORK_DIR/android/gradlew"
 
+    if [ "$DO_CLEAN_ONLY" = true ]; then
+        log_info "Performing clean only..."
+        cd "$WORK_DIR/android" && ./gradlew clean -Pversion_header_path="$WORK_DIR/src/version.h"
+        exit 0
+    fi
     if [ "$DO_CLEAN" = true ]; then
         log_info "Cleaning..."
-        (cd "$WORK_DIR/android" && ./gradlew clean)
+        (cd "$WORK_DIR/android" && ./gradlew clean -Pversion_header_path="$WORK_DIR/src/version.h")
     fi
 
     export NDK_HOST_TAG=linux-x86_64
@@ -126,27 +135,27 @@ build_android_core() {
         return 1
     fi
 
-    local apk_file=""
+    local apk_dir="app/build/outputs/apk"
     local variant_lower="${BUILD_VARIANT,,}"
-
-    if [ -d "app/build/outputs/apk/experimental/$variant_lower" ]; then
-        apk_file=$(find "app/build/outputs/apk/experimental/$variant_lower" -name "*.apk" -type f -size +1M 2>/dev/null | head -1)
+    if [ "$variant_lower" = "debug" ]; then
+        apk_dir="$apk_dir/debug"
+    else
+        local subdirs=($(ls -t "$apk_dir" 2>/dev/null | grep -E '^(stable|experimental)$' | head -1))
+        if [ -n "$subdirs" ]; then
+            apk_dir="$apk_dir/$subdirs/$variant_lower"
+        else
+            apk_dir="$apk_dir/$variant_lower"
+        fi
     fi
-    if [ -z "$apk_file" ] && [ -d "app/build/outputs/apk/stable/$variant_lower" ]; then
-        apk_file=$(find "app/build/outputs/apk/stable/$variant_lower" -name "*.apk" -type f -size +1M 2>/dev/null | head -1)
-    fi
-    if [ -z "$apk_file" ]; then
-        apk_file=$(find "app/build/outputs/apk" -name "*.apk" -type f -size +1M 2>/dev/null | head -1)
-    fi
+    local apk_file=$(find "$apk_dir" -name "*.apk" -type f -size +1M 2>/dev/null | head -1)
 
     if [ -z "$apk_file" ]; then
         log_error "No valid APK found (size >1MB)"
         return 1
     fi
-
-    local apk_abs_path=$(realpath "$apk_file")
-    log_info "Build successful! APK location: $apk_abs_path"
-    send_notification "CDDA Build Complete" "APK generated" "$apk_abs_path"
+    log_info "Build successful! APK location: $apk_file"
+    local final_apk_dir=$(dirname "$apk_file")
+    send_notification "CDDA Build Complete" "APK generated" "$apk_file"
     return 0
 }
 
