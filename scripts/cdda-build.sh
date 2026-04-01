@@ -13,6 +13,10 @@ DO_CLEAN=false
 YES_MODE=false
 while [ $# -gt 0 ]; do
     case "$1" in
+        --clean-only)
+            DO_CLEAN_ONLY=true
+            shift
+            ;;
         --clean)
             DO_CLEAN=true
             shift
@@ -70,9 +74,14 @@ retry_build() {
 build_android_core() {
     [ -x "$WORK_DIR/android/gradlew" ] || chmod +x "$WORK_DIR/android/gradlew"
 
+    if [ "$DO_CLEAN_ONLY" = true ]; then
+        log_info "仅执行清理..."
+        cd "$WORK_DIR/android" && ./gradlew clean -Pversion_header_path="$WORK_DIR/src/version.h"
+        exit 0
+    fi
     if [ "$DO_CLEAN" = true ]; then
         log_info "执行清理..."
-        (cd "$WORK_DIR/android" && ./gradlew clean)
+        (cd "$WORK_DIR/android" && ./gradlew clean -Pversion_header_path="$WORK_DIR/src/version.h")
     fi
 
     export NDK_HOST_TAG=linux-x86_64
