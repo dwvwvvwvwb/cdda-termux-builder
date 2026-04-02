@@ -20,18 +20,48 @@ done
 # Fetch latest tag if requested
 if [ "$TAG" = "latest" ]; then
     log_step "Fetching latest release tag..."
-    command -v curl &>/dev/null || { log_error "curl required"; exit 1; }
-    command -v jq &>/dev/null || { log_error "jq required"; exit 1; }
-    response=$(curl -s -f -w "%{http_code}" --connect-timeout 10 --max-time 30 \
-        "https://api.github.com/repos/CleverRaven/Cataclysm-DDA/releases?per_page=1" 2>&1)
-    [ $? -ne 0 ] && { log_error "Network request failed"; exit 1; }
+    command -v curl &>/dev/null || { log_error "curl is required"; exit 1; }
+    command -v jq &>/dev/null || { log_error "jq is required"; exit 1; }
+
+    # Wrap curl in a conditional to avoid silent exit on failure
+    if ! response=$(curl -s -f -w "%{http_code}" --connect-timeout 15 --max-time 60 \
+        "https://api.github.com/repos/CleverRaven/Cataclysm-DDA/releases?per_page=1" 2>&1); then
+        log_error "Network request failed. Please check your internet connection or proxy settings."
+        exit 1
+    fi
+
     http_code=$(echo "$response" | tail -n1)
     body=$(echo "$response" | sed '$d')
-    [ "$http_code" -ne 200 ] && { log_error "GitHub API failed (HTTP $http_code)"; exit 1; }
-    latest_tag=$(echo "$body" | jq -r '.[0].tag_name')
-    [ -z "$latest_tag" ] || [ "$latest_tag" = "null" ] && { log_error "Failed to parse latest tag"; exit 1; }
-    TAG="$latest_tag"
-    log_info "Latest tag: $TAG"
+
+    case "$http_code" in
+        200)
+            latest_tag=$(echo "$body" | jq -r '.[0].tag_name')
+            if [ -z "$latest_tag" ] || [ "$latest_tag" = "null" ]; then
+                log_error "Failed to parse latest tag. API response may be invalid."
+                exit 1
+            fi
+            TAG="$latest_tag"
+            log_info "Latest tag: $TAG"
+            ;;
+        403)
+            log_error "GitHub API request denied (HTTP 403)"
+            log_error "Possible reasons:"
+            log_error "  - Rate limit exceeded. Please wait a few minutes and try again."
+            log_error "  - IP address temporarily blocked."
+            log_error "If the problem persists, try using a VPN or proxy."
+            exit 1
+            ;;
+        000)
+            log_error "Network connection failed (HTTP 000)."
+            log_error "Please check your network, proxy settings, or try accessing GitHub manually."
+            exit 1
+            ;;
+        *)
+            log_error "GitHub API request failed (HTTP $http_code)"
+            [ -n "$body" ] && log_error "Response: $body"
+            exit 1
+            ;;
+    esac
 fi
 
 # Clone or update repository
