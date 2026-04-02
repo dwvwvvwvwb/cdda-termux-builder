@@ -26,7 +26,7 @@
 
 ```bash
 # 克隆本仓库（中文版）
-git clone -b zh-CN https://github.com/dwvwvvwvwb/cdda-termux-builder.git
+git clone --depth 1 --branch zh-CN https://github.com/dwvwvvwvwb/cdda-termux-builder.git
 cd cdda-termux-builder/scripts
 
 # 赋予执行权限
