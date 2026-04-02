@@ -21,16 +21,50 @@ if [ "$TAG" = "latest" ]; then
     log_step "获取最新发布标签..."
     command -v curl &>/dev/null || { log_error "需要 curl 命令"; exit 1; }
     command -v jq &>/dev/null || { log_error "需要 jq 命令"; exit 1; }
-    response=$(curl -s -f -w "%{http_code}" --connect-timeout 10 --max-time 30 \
-        "https://api.github.com/repos/CleverRaven/Cataclysm-DDA/releases?per_page=1" 2>&1)
-    [ $? -ne 0 ] && { log_error "网络请求失败，请检查网络"; exit 1; }
+
+    # 用 if 包裹，防止 set -e 直接退出
+    if ! response=$(curl -s -f -w "%{http_code}" --connect-timeout 15 --max-time 60 \
+        "https://api.github.com/repos/CleverRaven/Cataclysm-DDA/releases?per_page=1" 2>&1); then
+        # curl 自身失败（如无法解析域名、连接超时），通常返回 000
+        log_error "网络请求失败，请检查网络连接或代理设置"
+        log_error "可能的原因：网络不通、DNS 解析失败、代理未配置"
+        exit 1
+    fi
+
     http_code=$(echo "$response" | tail -n1)
     body=$(echo "$response" | sed '$d')
-    [ "$http_code" -ne 200 ] && { log_error "GitHub API 请求失败 (HTTP $http_code)"; exit 1; }
-    latest_tag=$(echo "$body" | jq -r '.[0].tag_name')
-    [ -z "$latest_tag" ] || [ "$latest_tag" = "null" ] && { log_error "无法解析最新标签"; exit 1; }
-    TAG="$latest_tag"
-    log_info "最新标签: $TAG"
+
+    case "$http_code" in
+        200)
+            # 正常处理
+            latest_tag=$(echo "$body" | jq -r '.[0].tag_name')
+            if [ -z "$latest_tag" ] || [ "$latest_tag" = "null" ]; then
+                log_error "无法解析最新标签，API 响应格式可能异常"
+                exit 1
+            fi
+            TAG="$latest_tag"
+            log_info "最新标签: $TAG"
+            ;;
+        403)
+            log_error "GitHub API 请求被拒绝（HTTP 403）"
+            log_error "常见原因："
+            log_error "  - 请求频率过高，触发了 GitHub 的限流机制"
+            log_error "  - IP 地址被临时限制"
+            log_error "解决方法：请等待几分钟后重试，或使用代理网络"
+            exit 1
+            ;;
+        000)
+            # 理论上 curl 失败时已处理，但此处以防万一
+            log_error "网络连接失败（HTTP 000）"
+            log_error "请检查网络连接、代理设置，或尝试手动访问 GitHub"
+            exit 1
+            ;;
+        *)
+            log_error "GitHub API 请求失败 (HTTP $http_code)"
+            [ -n "$body" ] && log_error "响应内容: $body"
+            exit 1
+            ;;
+    esac
 fi
 
 if [ ! -d "$WORK_DIR" ]; then
