@@ -27,7 +27,7 @@ This script automates the entire process: install dependencies, download NDK/SDK
 
 ```bash
 # Clone this repository
-git clone https://github.com/yourusername/cdda-termux-builder.git
+git clone --depth 1 https://github.com/dwvwvvwvwb/cdda-termux-builder.git
 cd cdda-termux-builder/scripts
 
 # Make scripts executable
