@@ -88,6 +88,26 @@ keyPassword=your_key_password
 ```
 The build will automatically sign the APK.
 
+## Speed up subsequent builds with ccache (Optional)
+
+If you build frequently, `ccache` can cache compiled objects and reduce build time.
+
+1. Install ccache:
+   ```bash
+   pkg install ccache
+```
+
+1. Enable ccache by setting the environment variable before running the script:
+   ```bash
+   export USE_CCACHE=1
+   ```
+   To save disk space, you can also enable compression:
+   ```bash
+   export CCACHE_COMPRESS=1
+   ```
+   The cache is stored in ~/.ccache by default. You can check its size with ccache -s and clean it with ccache -C if needed.
+2. Run the build script as usual (e.g., ./cdda.sh all --yes latest).
+
 How It Works
 
 1. Setup – installs git, make, clang, curl, jq, 7zip, gettext, openjdk-17, coreutils, which via pkg. Downloads and verifies NDK and SDK from lzhiyong/termux-ndk releases.
