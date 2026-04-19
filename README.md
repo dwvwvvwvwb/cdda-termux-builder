@@ -95,7 +95,7 @@ If you build frequently, `ccache` can cache compiled objects and reduce build ti
 1. Install ccache:
    ```bash
    pkg install ccache
-```
+   ```
 
 1. Enable ccache by setting the environment variable before running the script:
    ```bash
