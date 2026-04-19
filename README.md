@@ -87,6 +87,26 @@ keyPassword=your_key_password
 ```
 构建时 Gradle 会自动读取并签名。
 
+## 使用 ccache 加速后续构建（可选）
+
+如果您需要频繁构建，可以使用 `ccache` 缓存编译产物，减少构建时间。
+
+1. 安装 ccache：
+   ```bash
+   pkg install ccache
+   ```
+
+1. 运行脚本前设置环境变量启用缓存：
+   ```bash
+   export USE_CCACHE=1
+   ```
+   如需节省存储空间，可同时启用压缩：
+   ```bash
+   export CCACHE_COMPRESS=1
+   ```
+   缓存默认保存在 ~/.ccache 目录。您可以用 ccache -s 查看大小，用 ccache -C 清理缓存。
+2. 正常执行构建命令（如 ./cdda.sh all --yes latest）。
+
 工作原理
 
 1. 安装阶段 – 通过 pkg 安装 git、make、clang、curl、jq、7zip、gettext、openjdk-17、coreutils、which。从 lzhiyong/termux-ndk 下载并校验 NDK 和 SDK。
