@@ -88,6 +88,7 @@ fi
 cd "$WORK_DIR/android" || { log_error "android directory missing"; exit 1; }
 log_step "Writing local.properties ..."
 cat > local.properties <<EOF
+j=$(nproc)
 sdk.dir=$ANDROID_HOME
 ndk.dir=$ANDROID_NDK_HOME
 override_ndkVersion=$NDK_VERSION
