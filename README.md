@@ -87,29 +87,22 @@ keyPassword=your_key_password
 ```
 构建时 Gradle 会自动读取并签名。
 
-## 使用 ccache 加速后续构建（可选）
+## 使用 ccache 加速后续构建
 
-如果您需要频繁构建，可以使用 `ccache` 缓存编译产物，减少构建时间。
+`ccache` 已自动安装，并在构建时默认启用。它可以缓存编译产物，显著减少重复构建的时间。
 
-1. 安装 ccache：
+1. 如需调整缓存行为（如压缩或限制大小），可以在运行脚本前设置环境变量：
    ```bash
-   pkg install ccache
-   ```
+   export CCACHE_COMPRESS=1          # 启用压缩，节省空间
+   export CCACHE_MAXSIZE=5G          # 限制缓存大小为 5GB
+```
 
-1. 运行脚本前设置环境变量启用缓存：
-   ```bash
-   export USE_CCACHE=1
-   ```
-   如需节省存储空间，可同时启用压缩：
-   ```bash
-   export CCACHE_COMPRESS=1
-   ```
-   缓存默认保存在 ~/.ccache 目录。您可以用 ccache -s 查看大小，用 ccache -C 清理缓存。
-2. 正常执行构建命令（如 ./cdda.sh all --yes latest）。
+2. 缓存默认保存在 ~/.ccache 目录。使用 ccache -s 查看统计，ccache -C 清理缓存。
+3. 正常执行构建命令（如 ./cdda.sh all --yes latest）。
 
 工作原理
 
-1. 安装阶段 – 通过 pkg 安装 git、make、clang、curl、jq、7zip、gettext、openjdk-17、coreutils、which。从 lzhiyong/termux-ndk 下载并校验 NDK 和 SDK。
+1. 安装阶段 – 通过 pkg 安装 git、make、clang、curl、jq、7zip、gettext、openjdk-17、coreutils、which、cmake、ninja、ccache。从 lzhiyong/termux-ndk 下载并校验 NDK 和 SDK，并自动创建 cmake/ninja 符号链接到 SDK 目录。
 2. 配置阶段 – 浅克隆 CDDA 源码，切换到指定标签。创建 local.properties，写入 SDK/NDK 路径和版本覆盖。
 3. 构建阶段 – 临时向 app/build.gradle 添加 buildToolsVersion，强制使用正确的 NDK 工具链（linux-x86_64），运行 ./gradlew assembleRelease（或 debug）。成功后定位 APK（>1MB）并发送通知。
 
