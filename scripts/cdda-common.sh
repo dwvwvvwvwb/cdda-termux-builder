@@ -168,3 +168,28 @@ find_platform_version() {
     fi
     printf "%s\n" "${versions[@]}" | sort -n | tail -1
 }
+
+# Setup symlinks for cmake and ninja required by SDK
+setup_cmake_ninja_symlinks() {
+    local sdk_cmake_dir="$ANDROID_HOME/cmake"
+    local target_version="3.22.1"          # version expected by CDDA build scripts
+    local target_bin_dir="$sdk_cmake_dir/$target_version/bin"
+
+    # Check if cmake and ninja are available in Termux
+    if ! command -v cmake &>/dev/null; then
+        log_error "cmake is not installed, please run: pkg install cmake"
+        return 1
+    fi
+    if ! command -v ninja &>/dev/null; then
+        log_error "ninja is not installed, please run: pkg install ninja"
+        return 1
+    fi
+
+    mkdir -p "$target_bin_dir"
+
+    # Create symbolic links (overwrite if exist)
+    ln -sf "$(command -v cmake)" "$target_bin_dir/cmake"
+    ln -sf "$(command -v ninja)" "$target_bin_dir/ninja"
+
+    log_info "Created cmake/ninja symlinks for SDK at: $target_bin_dir"
+}

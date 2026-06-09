@@ -29,7 +29,7 @@ retry_command "pkg update -y" || {
 }
 
 log_step "Installing required packages..."
-retry_command "pkg install -y" git make clang curl jq 7zip gettext openjdk-17 coreutils which || {
+retry_command "pkg install -y" git make clang curl jq 7zip gettext openjdk-17 coreutils which cmake ninja ccache || {
     log_error "Failed to install required packages"
     exit 1
 }
@@ -82,4 +82,5 @@ else
     rm "$SDK_FILE"
 fi
 
+setup_cmake_ninja_symlinks
 log_info "Environment setup complete!"
