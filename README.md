@@ -88,29 +88,22 @@ keyPassword=your_key_password
 ```
 The build will automatically sign the APK.
 
-## Speed up subsequent builds with ccache (Optional)
+## Using ccache to speed up subsequent builds
 
-If you build frequently, `ccache` can cache compiled objects and reduce build time.
+`ccache` is automatically installed and enabled by default. It caches compiled objects to greatly reduce rebuild time.
 
-1. Install ccache:
+1. To adjust cache behavior (e.g., compression or size limit), set environment variables before running the script:
    ```bash
-   pkg install ccache
-   ```
+   export CCACHE_COMPRESS=1          # enable compression to save space
+   export CCACHE_MAXSIZE=5G          # limit cache size to 5GB
+```
 
-1. Enable ccache by setting the environment variable before running the script:
-   ```bash
-   export USE_CCACHE=1
-   ```
-   To save disk space, you can also enable compression:
-   ```bash
-   export CCACHE_COMPRESS=1
-   ```
-   The cache is stored in ~/.ccache by default. You can check its size with ccache -s and clean it with ccache -C if needed.
-2. Run the build script as usual (e.g., ./cdda.sh all --yes latest).
+2. Cache is stored in ~/.ccache. Use ccache -s to view stats, ccache -C to clear cache.
+3. Run the build script as usual (e.g., ./cdda.sh all --yes latest).
 
 How It Works
 
-1. Setup – installs git, make, clang, curl, jq, 7zip, gettext, openjdk-17, coreutils, which via pkg. Downloads and verifies NDK and SDK from lzhiyong/termux-ndk releases.
+1. Setup – Installs git, make, clang, curl, jq, 7zip, gettext, openjdk-17, coreutils, which, cmake, ninja, ccache via pkg. Downloads and verifies NDK and SDK from lzhiyong/termux-ndk, then automatically creates cmake/ninja symlinks to the SDK directory.
 2. Config – clones CDDA (shallow clone) and checks out the specified tag. Creates local.properties with SDK/NDK paths and version overrides.
 3. Build – temporarily adds buildToolsVersion to app/build.gradle, forces use of the correct NDK toolchain (linux-x86_64), and runs ./gradlew assembleRelease (or debug). On success, locates the APK (>1MB) and sends a notification.
 
