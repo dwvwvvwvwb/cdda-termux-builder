@@ -169,3 +169,28 @@ find_platform_version() {
     fi
     printf "%s\n" "${versions[@]}" | sort -n | tail -1
 }
+
+# 设置 SDK 所需的 cmake 和 ninja 符号链接
+setup_cmake_ninja_symlinks() {
+    local sdk_cmake_dir="$ANDROID_HOME/cmake"
+    local target_version="3.22.1"          # CDDA 构建脚本期望的版本
+    local target_bin_dir="$sdk_cmake_dir/$target_version/bin"
+
+    # 检查 Termux 中的 cmake 和 ninja 是否可用
+    if ! command -v cmake &>/dev/null; then
+        log_error "cmake 未安装，请先执行 pkg install cmake"
+        return 1
+    fi
+    if ! command -v ninja &>/dev/null; then
+        log_error "ninja 未安装，请先执行 pkg install ninja"
+        return 1
+    fi
+
+    mkdir -p "$target_bin_dir"
+
+    # 创建符号链接（覆盖已存在的链接）
+    ln -sf "$(command -v cmake)" "$target_bin_dir/cmake"
+    ln -sf "$(command -v ninja)" "$target_bin_dir/ninja"
+
+    log_info "已为 SDK 创建 cmake/ninja 符号链接: $target_bin_dir"
+}
