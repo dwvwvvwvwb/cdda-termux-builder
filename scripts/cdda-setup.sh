@@ -4,8 +4,8 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/cdda-common.sh"
 
-NDK_SHA256="21ca4237997da6c601eda6de48418609d6d8308b26c631620ae57cf1fa06c4c7"
-SDK_SHA256="5b3535d4533fbd788ef976a4ce4c3050f19150fe9d0bb092263045317c46f463"
+NDK_SHA256="02e10e4ddfe8deaeb0bd0cf29d04c981ed5bc8a5d6b560ebb9e7661f472d684b"
+SDK_SHA256="8a23d2a10897ad74e34e10d7d2647ed450fad194d622b8b46e1ebd44557171ad"
 
 YES_MODE=false
 while [ $# -gt 0 ]; do
@@ -29,15 +29,15 @@ retry_command "pkg update -y" || {
 }
 
 log_step "安装必要软件包..."
-retry_command "pkg install -y" git make clang curl jq 7zip gettext openjdk-17 coreutils which cmake ninja ccache || {
+retry_command "pkg install -y" git make clang curl jq xz-utils gettext openjdk-17 coreutils which cmake ninja ccache || {
     log_error "安装必要软件包失败"
     exit 1
 }
 
 log_step "检查 NDK 和 SDK..."
 
-NDK_FILE="ndk.7z"
-NDK_URL="https://github.com/lzhiyong/termux-ndk/releases/download/android-ndk/android-ndk-r29-aarch64.7z"
+NDK_FILE="ndk.tar.xz"
+NDK_URL="https://github.com/lzhiyong/termux-ndk/releases/download/android-ndk/android-ndk-r29-aarch64.tar.xz"
 if [ -n "$ANDROID_NDK_HOME" ] && [ -d "$ANDROID_NDK_HOME" ] && [ -f "$ANDROID_NDK_HOME/ndk-build" ]; then
     log_info "NDK 已存在: $ANDROID_NDK_HOME"
 else
@@ -49,7 +49,7 @@ else
 
     log_info "解压 NDK..."
     target_dir=$(dirname "$ANDROID_NDK_HOME")
-    7zz x "$NDK_FILE" -o"$target_dir" || log_warn "解压时出现符号链接警告，不影响使用"
+    tar -xf "$NDK_FILE" -C "$target_dir"
     if [ ! -f "$ANDROID_NDK_HOME/ndk-build" ]; then
         log_error "NDK 解压后未找到 ndk-build，可能解压失败"
         exit 1
@@ -61,8 +61,8 @@ else
     rm "$NDK_FILE"
 fi
 
-SDK_FILE="sdk.7z"
-SDK_URL="https://github.com/lzhiyong/termux-ndk/releases/download/android-sdk/android-sdk-aarch64.7z"
+SDK_FILE="sdk.tar.xz"
+SDK_URL="https://github.com/lzhiyong/termux-ndk/releases/download/android-sdk/android-sdk-aarch64.tar.xz"
 if [ -n "$ANDROID_HOME" ] && [ -d "$ANDROID_HOME" ] && [ -d "$ANDROID_HOME/build-tools" ]; then
     log_info "SDK 已存在: $ANDROID_HOME"
 else
@@ -74,7 +74,7 @@ else
 
     log_info "解压 SDK..."
     target_dir=$(dirname "$ANDROID_HOME")
-    7zz x "$SDK_FILE" -o"$target_dir" || log_warn "解压时出现符号链接警告，不影响使用"
+    tar -xf "$SDK_FILE" -C "$target_dir"
     if [ ! -d "$ANDROID_HOME/build-tools" ]; then
         log_error "SDK 解压后未找到 build-tools 目录，可能解压失败"
         exit 1
