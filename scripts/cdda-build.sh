@@ -99,6 +99,18 @@ build_android_core() {
 
     cd "$WORK_DIR/android" || return 1
 
+    # Disable the aapt2 daemon to avoid crashes caused by leftover sockets
+    local gradle_props="gradle.properties"
+    if [ ! -f "$gradle_props" ]; then
+        echo "android.enableAapt2Daemon=false" > "$gradle_props"
+    else
+        if grep -q "android.enableAapt2Daemon" "$gradle_props"; then
+            sed -i 's/^android.enableAapt2Daemon=.*/android.enableAapt2Daemon=false/' "$gradle_props"
+        else
+            echo "android.enableAapt2Daemon=false" >> "$gradle_props"
+        fi
+    fi
+
     local gradle_file="app/build.gradle"
     local gradle_bak="app/build.gradle.bak"
     cp "$gradle_file" "$gradle_bak"
