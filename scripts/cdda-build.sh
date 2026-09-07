@@ -86,6 +86,18 @@ build_android_core() {
 
     export NDK_HOST_TAG=linux-x86_64
 
+    # 禁用 aapt2 守护进程，避免因套接字残留导致崩溃
+    local gradle_props="gradle.properties"
+    if [ ! -f "$gradle_props" ]; then
+        echo "android.enableAapt2Daemon=false" > "$gradle_props"
+    else
+        if grep -q "android.enableAapt2Daemon" "$gradle_props"; then
+            sed -i 's/^android.enableAapt2Daemon=.*/android.enableAapt2Daemon=false/' "$gradle_props"
+        else
+            echo "android.enableAapt2Daemon=false" >> "$gradle_props"
+        fi
+    fi
+
     if [ -z "$JAVA_HOME" ]; then
         if command -v java >/dev/null 2>&1; then
             java_path=$(readlink -f $(which java))
