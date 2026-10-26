@@ -1,141 +1,167 @@
-# CDDA Termux Builder
+# CDDA Termux Builder (English)
 
-![Build Status](https://img.shields.io/badge/build-passing-brightgreen) ![License](https://img.shields.io/badge/license-GPLv3-blue)
+**Language / 语言:** [简体中文](https://github.com/dwvwvvwvwb/cdda-termux-builder/blob/zh-CN/README.md) · English
 
-Build [Cataclysm: Dark Days Ahead](https://github.com/CleverRaven/Cataclysm-DDA) (CDDA) natively on Android using Termux.  
-Generate APK (Android) or Linux executable without a PC.
+> This is the English version. For the Chinese version, see the `zh-CN` branch.
 
-This script automates the entire process: install dependencies, download NDK/SDK, fetch the latest CDDA source, configure the build environment, and build the APK with automatic retries.
+Build the Cataclysm: Dark Days Ahead (CDDA) Android client on an Android phone via Termux with a single command, producing an Android APK.
+
+The script handles everything automatically: installing dependencies, downloading the NDK/SDK, fetching the latest source, configuring the environment, building the APK, and retrying on failure.
 
 ## Features
 
-- **One-command setup** – installs Termux packages, Android NDK, and SDK.
-- **Automatic source management** – clones CDDA and checks out the latest tag (or any specified tag).
-- **Build configuration** – automatically sets `buildToolsVersion`, `override_ndkVersion`, and SDK versions.
-- **Retry on failure** – builds retry up to 3 times for transient issues.
-- **APK validation** – rejects empty or corrupted APKs (<1MB).
-- **Optional notifications** – uses Termux:API to notify when build finishes.
-- **Customizable** – via environment variables (`WORK_DIR`, `BUILD_VARIANT`, `NOTIFY`).
+- **One-command setup** – Automatically installs Termux packages, the Android NDK, and the SDK.
+- **Source management** – Clones CDDA and checks out the latest tag (or any specified tag).
+- **Auto-configuration** – Sets `buildToolsVersion`, `override_ndkVersion`, and SDK versions.
+- **Retry on failure** – Retries the build up to 3 times.
+- **APK validation** – Rejects empty or sub-1MB invalid APKs.
+- **Optional notifications** – Sends a notification via Termux:API when the build finishes.
+- **Customizable** – Configure the source directory, build variant, and notifications via environment variables.
 
 ## Requirements
 
-- Android device with at least 6 GB RAM and 15 GB free storage.
-- [Termux](https://f-droid.org/repo/com.termux_118.apk) (F-Droid version recommended).
-- Stable internet connection (first run downloads ~600 MB NDK/SDK).
+- An Android device (6GB+ RAM recommended, 15GB+ free storage)
+- Termux (the [F-Droid version](https://f-droid.org/repo/com.termux_118.apk) is recommended)
+- A stable network connection (~600MB NDK/SDK download on first run)
 
 ## Quick Start
 
 ```bash
-# Clone this repository
-git clone --depth 1 https://github.com/dwvwvvwvwb/cdda-termux-builder.git
+# Clone this repository (English version)
+git clone --depth 1 --branch main https://github.com/dwvwvvwvwb/cdda-termux-builder.git
 cd cdda-termux-builder/scripts
 
 # Make scripts executable
 chmod +x *.sh
 
-# Full build (latest release) – skip confirmations
+# Full automated build of the latest release (skip all confirmations)
 ./cdda.sh all --yes latest
 ```
 
-After success, the APK will be in ~/Cataclysm-DDA/android/app/build/outputs/apk/.
+On success, the APK is located at `~/Cataclysm-DDA/android/app/build/outputs/apk/`.
 
-Usage
+## Usage
 
 ```
 ./cdda.sh [command] [options]
 
 Commands:
-  setup [--yes]      Install system dependencies, NDK, and SDK.
-  config [--yes] [tag]   Configure project (tag can be "latest" or a specific tag).
-  build [--clean]    Build the APK (--clean cleans before build).
-  all [--yes] [tag]  Run setup, config, and build in sequence.
-  clean              Only clean build artifacts.
-  help               Show this help.
+  setup [--yes]              Install system dependencies and the SDK/NDK (first run)
+  config [--yes] [tag]       Configure the project (tag can be a specific tag name or "latest")
+  build [--clean] [--yes]    Build the APK (--clean cleans first)
+  all [--yes] [tag]          Run setup, config, and build in sequence
+  clean                      Remove build artifacts only
+  help                       Show help
 
 Environment variables:
-  WORK_DIR          Source directory (default: ~/Cataclysm-DDA)
-  BUILD_VARIANT     release or debug (default: release)
-  NOTIFY            true/false (default: true)
+  WORK_DIR        Source directory (default: ~/Cataclysm-DDA)
+  BUILD_VARIANT   Build variant: release/debug (default: release)
+  NOTIFY          Send notifications: true/false (default: true)
+  GITHUB_TOKEN    Optional GitHub Personal Access Token (see "GitHub Token" below)
 ```
 
-Examples
+## Examples
 
 ```bash
-# Build the latest release (interactive)
+# Interactive build of the latest release
 ./cdda.sh all latest
 
-# Build a specific tag with automatic confirmation
+# Non-interactive build of a specific tag
 ./cdda.sh all --yes cdda-experimental-2026-03-24-2310
 
-# Only configure the project for latest tag
+# Configure only (switch to the latest tag)
 ./cdda.sh config latest
 
-# Build with debug variant and no notifications
+# Build a debug variant without notifications
 BUILD_VARIANT=debug NOTIFY=false ./cdda.sh build
 ```
 
-## Signing the APK (Optional)
+## GitHub Token (Recommended)
 
-To generate a signed APK, place a `keystore.properties` file in `Cataclysm-DDA/android/` before building.  
-Example:
+When `TAG=latest`, the script queries the GitHub Releases API to resolve the latest tag. This endpoint works anonymously, but the rate limits differ significantly:
+
+| Mode | Rate limit | Notes |
+|------|------------|-------|
+| With `GITHUB_TOKEN` | 5000 requests/hour | Per token |
+| Anonymous | 60 requests/hour | Per IP; shared IPs (VPS, CI runners, proxy pools) are easily rate-limited |
+
+If you hit a mysterious `403` while fetching the latest tag, it is almost always anonymous rate limiting. Setting a token avoids it:
+
+```bash
+export GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxx
+./cdda.sh all --yes latest
 ```
 
+- Classic token: the `repo` scope is enough (public repos may work without it, but including it is safer).
+- Fine-grained token: select `CleverRaven/Cataclysm-DDA` and grant **Contents: Read**.
+- Without a token the script still works; it just warns about the lower limit and continues anonymously.
+
+## Signing the APK (Optional)
+
+To produce a signed APK, place a `keystore.properties` file in `Cataclysm-DDA/android/` before building.
+
+Example content:
+
+```
 storeFile=/path/to/keystore.jks
 storePassword=your_store_password
 keyAlias=your_key_alias
 keyPassword=your_key_password
-
 ```
-The build will automatically sign the APK.
 
-## Using ccache to speed up subsequent builds
+Gradle reads it automatically and signs the build.
 
-`ccache` is automatically installed and enabled by default. It caches compiled objects to greatly reduce rebuild time.
+## Speeding Up Subsequent Builds with ccache
 
-1. To adjust cache behavior (e.g., compression or size limit), set environment variables before running the script:
+`ccache` is installed automatically and enabled by default during builds. It caches compilation artifacts and significantly reduces rebuild time.
+
+1. To tune cache behavior (e.g. compression or size limits), set environment variables before running the script:
    ```bash
-   export CCACHE_COMPRESS=1          # enable compression to save space
-   export CCACHE_MAXSIZE=5G          # limit cache size to 5GB
-```
+   export CCACHE_COMPRESS=1          # Enable compression to save space
+   export CCACHE_MAXSIZE=5G          # Limit the cache to 5GB
+   ```
 
-2. Cache is stored in ~/.ccache. Use ccache -s to view stats, ccache -C to clear cache.
-3. Run the build script as usual (e.g., ./cdda.sh all --yes latest).
+2. The cache is stored in `~/.ccache` by default. Use `ccache -s` to view stats and `ccache -C` to clear it.
+3. Run the build command as usual (e.g. `./cdda.sh all --yes latest`).
 
-How It Works
+## How It Works
 
-1. Setup – Installs git, make, clang, curl, jq, 7zip, gettext, openjdk-17, coreutils, which, cmake, ninja, ccache via pkg. Downloads and verifies NDK and SDK from lzhiyong/termux-ndk, then automatically creates cmake/ninja symlinks to the SDK directory.
-2. Config – clones CDDA (shallow clone) and checks out the specified tag. Creates local.properties with SDK/NDK paths and version overrides.
-3. Build – temporarily adds buildToolsVersion to app/build.gradle, forces use of the correct NDK toolchain (linux-x86_64), and runs ./gradlew assembleRelease (or debug). On success, locates the APK (>1MB) and sends a notification.
+1. **Setup** – Installs `git`, `make`, `clang`, `curl`, `jq`, `7zip`, `gettext`, `openjdk-17`, `coreutils`, `which`, `cmake`, `ninja`, and `ccache` via `pkg`. Downloads and verifies the NDK and SDK from `lzhiyong/termux-ndk`, and creates `cmake`/`ninja` symlinks in the SDK directory.
+2. **Configure** – Shallow-clones the CDDA source and checks out the specified tag. Creates `local.properties` with the SDK/NDK paths and version overrides.
+3. **Build** – Temporarily adds `buildToolsVersion` to `app/build.gradle`, forces the correct NDK toolchain (`linux-x86_64`), and runs `./gradlew assembleRelease` (or `debug`). On success, locates the APK (>1MB) and sends a notification.
 
-Troubleshooting
+## Troubleshooting
 
-"Permission denied" for clang++ in NDK
+### "Permission denied" for `clang++` in the NDK
 
-The script automatically fixes this by recreating the symbolic link. If it persists, delete ~/android-ndk-r29 and run ./cdda.sh setup again.
+The script fixes the symlinks automatically. If the problem persists, delete `~/android-ndk-r29` and rerun `./cdda.sh setup`.
 
-Gradle tries to download build-tools 30.0.3
+### Gradle tries to download build-tools 30.0.3
 
-The script adds buildToolsVersion "35.0.0" (or your highest available) to build.gradle to prevent this. Ensure your SDK contains at least one build-tools version (e.g., 35.0.0).
+The script adds `buildToolsVersion "35.0.0"` (or your highest local version) to `build.gradle` to block the download. Make sure the SDK contains at least one build-tools version (e.g. 35.0.0).
 
-Build fails with Java version error
+### Wrong Java version
 
-The script sets JAVA_HOME automatically for OpenJDK 17. If you have multiple Java versions, ensure OpenJDK 17 is the default (java -version).
+The script sets `JAVA_HOME` to OpenJDK 17 automatically. If multiple Java installations exist, ensure `java -version` reports OpenJDK 17.
 
-Disk space insufficient
+### Out of disk space
 
-Clean up old builds and logs: rm -rf ~/Cataclysm-DDA ~/android-ndk-r29 ~/android-sdk .cdda_build_logs/*. The script checks free space and warns.
+Clean old build artifacts and logs: `rm -rf ~/Cataclysm-DDA ~/android-ndk-r29 ~/android-sdk .cdda_build_logs/*`. The script checks free space at startup and warns.
 
-Credits
+### HTTP 403 when fetching the latest tag
 
-· lzhiyong for providing Termux-compatible Android NDK and SDK packages.
-· Cataclysm-DDA team for the game.
+Almost always anonymous rate limiting (60 requests/hour per IP). Set `GITHUB_TOKEN` as described in "GitHub Token" above. The API response body (`Bad credentials`, `API rate limit exceeded`, etc.) is printed in the logs to help distinguish authentication failures from rate limiting.
 
-License
+## Acknowledgements
 
-This project is licensed under the GNU General Public License v3.0 – see the LICENSE file for details.
+- [lzhiyong](https://github.com/lzhiyong) for the Termux-compatible Android NDK and SDK packages.
+- The Cataclysm-DDA development team.
 
-Language Branches
+## License
 
-· English version – this main branch.
-· Chinese version – available in the zh-CN branch.
-    Switch with git checkout zh-CN to get Chinese documentation and scripts.
+This project is licensed under the GNU General Public License v3.0 – see the `LICENSE` file for details.
+
+## Language Branches
+
+- English – `main` branch
+- Chinese – `zh-CN` branch
