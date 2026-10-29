@@ -19,8 +19,8 @@ done
 
 if [ "$TAG" = "latest" ]; then
     log_step "$(get_txt "Fetching latest release tag...")"
-    command -v curl &>/dev/null \|\| { log_error "$(get_txt "curl is required")"; exit 1; }
-    command -v jq &>/dev/null \|\| { log_error "$(get_txt "jq is required")"; exit 1; }
+    command -v curl &>/dev/null || { log_error "$(get_txt "curl is required")"; exit 1; }
+    command -v jq &>/dev/null || { log_error "$(get_txt "jq is required")"; exit 1; }
 
     API_URL="https://api.github.com/repos/CleverRaven/Cataclysm-DDA/releases?per_page=1"
 
@@ -146,7 +146,7 @@ else
 fi
 
 # Configure local.properties
-cd "$WORK_DIR/android" \|\| { log_error "$(get_txt "android directory missing")"; exit 1; }
+cd "$WORK_DIR/android" || { log_error "$(get_txt "android directory missing")"; exit 1; }
 log_step "$(get_txt "Writing local.properties ...")"
 cat > local.properties <<EOF
 j=$(nproc)
