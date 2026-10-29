@@ -10,25 +10,25 @@ NC='\033[0m'
 CDDA_LOCALES_DIR="${CDDA_LOCALES_DIR:-$SCRIPT_DIR/../locales}"
 CDDA_LANG_CONF="${CDDA_LANG_CONF:-$HOME/.config/cdda-termux-builder/lang}"
 
-# 把任意形式的语言标签规范化到实际存在的 .po 文件名，或 "en"
+# Normalize any language tag to an existing .po basename, or "en".
 normalize_lang() {
     local want="$1"
-    want="${want%%.*}"      # zh_CN.UTF-8 → zh_CN
-    want="${want//-/_}"     # zh-CN → zh_CN
+    want="${want%%.*}"      # zh_CN.UTF-8 -> zh_CN
+    want="${want//-/_}"     # zh-CN -> zh_CN
 
     [ -z "$want" ] && { printf 'en'; return; }
 
-    # 1. 精确匹配
+    # 1. Exact match
     if [ -f "$CDDA_LOCALES_DIR/$want.po" ]; then
         printf '%s' "$want"
         return
     fi
 
-    # 2. 英文是源语言，直接返回 en（不找 en_*.po）
+    # 2. English is the source language; return en directly (no en_*.po)
     local base="${want%%_*}"
     [ "$base" = "en" ] && { printf 'en'; return; }
 
-    # 3. 主语言代码匹配：zh_TW → 第一个 zh_*.po
+    # 3. Primary-language match: zh_TW -> first zh_*.po
     local f first=""
     for f in "$CDDA_LOCALES_DIR/$base"_*.po "$CDDA_LOCALES_DIR/$base.po"; do
         [ -f "$f" ] || continue
@@ -40,11 +40,11 @@ normalize_lang() {
         return
     fi
 
-    # 4. 都找不到 → en
+    # 4. Nothing found -> en
     printf 'en'
 }
 
-# 判定链
+# Decision Chain
 CDDA_LANG="${CDDA_LANG:-}"
 
 if [ -z "$CDDA_LANG" ] && [ -f "$CDDA_LANG_CONF" ]; then
@@ -59,6 +59,8 @@ fi
 
 CDDA_LANG="$(normalize_lang "$CDDA_LANG")"
 
+# Termux/Bionic has no zh_CN locale and gettext is a no-op there;
+# the hand-written .po parser is a necessary workaround. Do not "optimize" to gettext.
 get_txt() {
     local msgid="$1"
     local po_file="$CDDA_LOCALES_DIR/${CDDA_LANG}.po"
