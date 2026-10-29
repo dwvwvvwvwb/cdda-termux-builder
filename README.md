@@ -1,3 +1,5 @@
+> ⚠️ **本分支已废弃**。中文翻译现在维护于 `main` 分支的 `locales/zh_CN.po` 文件，本分支仅作历史存档，不再更新。请访问 [main 分支](https://github.com/dwvwvvwvwb/cdda-termux-builder) 获取最新版本。
+
 # CDDA Termux 构建器（中文版）
 
 **语言 / Language:** [English](https://github.com/dwvwvvwvwb/cdda-termux-builder/blob/main/README.md) · 简体中文
