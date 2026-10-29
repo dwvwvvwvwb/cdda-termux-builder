@@ -1,0 +1,339 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: cdda-termux-builder\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Info"
+msgstr "信息"
+
+msgid "Warning"
+msgstr "警告"
+
+msgid "Error"
+msgstr "错误"
+
+msgid "Step"
+msgstr "步骤"
+
+# --- cdda-common.sh ---
+msgid "Command failed, retrying %s/%s ..."
+msgstr "命令失败，重试 %s/%s ..."
+
+msgid "Download failed, retrying %s/%s ..."
+msgstr "下载失败，重试 %s/%s ..."
+
+msgid "File does not exist, downloading..."
+msgstr "文件不存在，开始下载..."
+
+msgid "Download failed, retry %s/%s"
+msgstr "下载失败，重试 %s/%s"
+
+msgid "Verifying SHA256..."
+msgstr "校验 SHA256..."
+
+msgid "SHA256 mismatch, deleting corrupted file..."
+msgstr "SHA256 校验失败，删除损坏文件..."
+
+msgid "Re-downloading (%s/%s)..."
+msgstr "重新下载 (%s/%s)..."
+
+msgid "Fixed %s"
+msgstr "已修复 %s"
+
+msgid "Cannot determine disk space, skipping check"
+msgstr "无法获取磁盘空间信息，跳过检查"
+
+msgid "Available space %sMB is less than recommended %sMB"
+msgstr "可用空间 %sMB，低于建议值 %sMB"
+
+msgid "Continue anyway?"
+msgstr "是否继续？"
+
+msgid "Input read failed, exiting"
+msgstr "读取输入失败，退出"
+
+msgid "SDK build-tools directory does not exist: %s"
+msgstr "SDK build-tools 目录不存在：%s"
+
+msgid "No build-tools directory containing aapt2 found"
+msgstr "未找到包含 aapt2 的 build-tools 目录"
+
+msgid "SDK platforms directory does not exist: %s"
+msgstr "SDK platforms 目录不存在：%s"
+
+msgid "No valid platform directory found"
+msgstr "未找到有效的 platform 目录"
+
+msgid "cmake is not installed, please run:"
+msgstr "cmake 未安装，请执行："
+
+msgid "ninja is not installed, please run:"
+msgstr "ninja 未安装，请执行："
+
+msgid "Created cmake/ninja symlinks for SDK at: %s"
+msgstr "已为 SDK 创建 cmake/ninja 符号链接：%s"
+
+# --- cdda.sh (help text) ---
+msgid ""
+"Usage: ./cdda.sh [command] [options]\n"
+"\n"
+"Commands:\n"
+"  setup [--yes]              Install system dependencies, NDK, and SDK.\n"
+"  config [--yes] [tag]       Configure project (tag can be \"latest\" or a specific tag).\n"
+"  build [--clean] [--yes]    Build APK (--clean cleans before build).\n"
+"  all [--yes] [tag]          Run setup, config, build in sequence.\n"
+"  clean                      Only clean build artifacts.\n"
+"  lang [zh_CN|en]            Set or show the UI language.\n"
+"  help                       Show this help.\n"
+"\n"
+"Environment:\n"
+"  WORK_DIR        Source directory (default: ~/Cataclysm-DDA)\n"
+"  BUILD_VARIANT   release or debug (default: release)\n"
+"  NOTIFY          true/false (default: true)\n"
+"  CDDA_LANG       UI language: en/zh_CN (default: auto-detect)\n"
+"  GITHUB_TOKEN    Optional GitHub Personal Access Token\n"
+"\n"
+"Examples:\n"
+"  ./cdda.sh all --yes latest\n"
+"  ./cdda.sh config --yes cdda-experimental-2026-03-24-2310\n"
+"  ./cdda.sh build --clean\n"
+"  ./cdda.sh clean\n"
+"  ./cdda.sh lang zh_CN"
+msgstr ""
+"用法: ./cdda.sh [命令] [选项]\n"
+"\n"
+"命令:\n"
+"  setup [--yes]              安装系统依赖、NDK 和 SDK。\n"
+"  config [--yes] [tag]       配置项目（tag 可以是 \"latest\" 或具体标签名）。\n"
+"  build [--clean] [--yes]    构建 APK（--clean 可清理后构建）。\n"
+"  all [--yes] [tag]          依次执行 setup, config, build。\n"
+"  clean                      仅清理构建产物。\n"
+"  lang [zh_CN|en]            设置或显示界面语言。\n"
+"  help                       显示帮助。\n"
+"\n"
+"环境变量:\n"
+"  WORK_DIR        源码目录（默认 ~/Cataclysm-DDA）\n"
+"  BUILD_VARIANT   构建变体 release/debug（默认 release）\n"
+"  NOTIFY          是否发送通知 true/false（默认 true）\n"
+"  CDDA_LANG       界面语言 en/zh_CN（默认自动检测）\n"
+"  GITHUB_TOKEN    可选的 GitHub Personal Access Token\n"
+"\n"
+"示例:\n"
+"  ./cdda.sh all --yes latest\n"
+"  ./cdda.sh config --yes cdda-experimental-2026-03-24-2310\n"
+"  ./cdda.sh build --clean\n"
+"  ./cdda.sh clean\n"
+"  ./cdda.sh lang zh_CN"
+
+# --- cdda-setup.sh ---
+msgid "Updating package list..."
+msgstr "更新软件包列表..."
+
+msgid "Failed to update package list, check network"
+msgstr "更新软件包列表失败，请检查网络"
+
+msgid "Installing required packages..."
+msgstr "安装必要软件包..."
+
+msgid "Failed to install required packages"
+msgstr "安装必要软件包失败"
+
+msgid "Checking NDK and SDK..."
+msgstr "检查 NDK 和 SDK..."
+
+msgid "NDK already exists"
+msgstr "NDK 已存在"
+
+msgid "Downloading NDK..."
+msgstr "下载 NDK..."
+
+msgid "NDK download or checksum failed"
+msgstr "NDK 下载或校验失败"
+
+msgid "Extracting NDK..."
+msgstr "解压 NDK..."
+
+msgid "NDK extraction failed: ndk-build not found"
+msgstr "NDK 解压后未找到 ndk-build，可能解压失败"
+
+msgid "SDK already exists"
+msgstr "SDK 已存在"
+
+msgid "Downloading SDK..."
+msgstr "下载 SDK..."
+
+msgid "SDK download or checksum failed"
+msgstr "SDK 下载或校验失败"
+
+msgid "Extracting SDK..."
+msgstr "解压 SDK..."
+
+msgid "SDK extraction failed: build-tools directory not found"
+msgstr "SDK 解压后未找到 build-tools 目录，可能解压失败"
+
+msgid "Environment setup complete!"
+msgstr "环境准备完成！"
+
+# --- cdda-config.sh ---
+msgid "Fetching latest release tag..."
+msgstr "获取最新发布标签..."
+
+msgid "curl is required"
+msgstr "需要 curl 命令"
+
+msgid "jq is required"
+msgstr "需要 jq 命令"
+
+msgid "Using GITHUB_TOKEN for authentication"
+msgstr "使用 GITHUB_TOKEN 认证请求"
+
+msgid "GITHUB_TOKEN is not set; falling back to anonymous requests"
+msgstr "未设置 GITHUB_TOKEN，将以匿名方式请求"
+
+msgid "Anonymous rate limit is only 60 requests/hour (per IP); shared IPs may be rate-limited"
+msgstr "匿名限流仅 60 次/小时（按 IP），共享 IP 易被连坐限流"
+
+msgid "Consider: export GITHUB_TOKEN=ghp_xxx to avoid unexpected 403s"
+msgstr "建议 export GITHUB_TOKEN=ghp_xxx 以避免莫名 403"
+
+msgid "DNS resolution failed (bad hostname / DNS unavailable)"
+msgstr "DNS 解析失败（域名错误 / DNS 服务不可用）"
+
+msgid "TCP connection failed (bad port / firewall / proxy unreachable)"
+msgstr "TCP 连接失败（端口错误 / 防火墙拦截 / 代理不通）"
+
+msgid "Request timed out (--connect-timeout or --max-time exceeded)"
+msgstr "请求超时（--connect-timeout 或 --max-time 触发）"
+
+msgid "Could not resolve proxy host"
+msgstr "无法解析代理主机"
+
+msgid "TLS/SSL handshake failed (certificate issue)"
+msgstr "TLS/SSL 握手失败（证书问题）"
+
+msgid "Transfer interrupted; incomplete data"
+msgstr "传输中断，数据不完整"
+
+msgid "Other network error"
+msgstr "其他网络错误"
+
+msgid "Network-layer failure (curl exit code %s): %s"
+msgstr "网络层失败（curl 退出码 %s）：%s"
+
+msgid "curl output:"
+msgstr "curl 输出："
+
+msgid "Failed to parse latest tag; API response:"
+msgstr "无法解析最新标签，API 响应："
+
+msgid "Latest tag:"
+msgstr "最新标签："
+
+msgid "GitHub authentication failed (HTTP 401): token is invalid, expired, or revoked"
+msgstr "GitHub 认证失败（HTTP 401）：令牌无效、过期或被撤销"
+
+msgid "Response:"
+msgstr "响应："
+
+msgid "GitHub API request denied (HTTP 403): insufficient permissions or rate limit exceeded"
+msgstr "GitHub API 被拒绝（HTTP 403）：权限不足或触发限流"
+
+msgid "Anonymous request: likely the 60/hour limit or shared-IP rate limiting"
+msgstr "当前为匿名请求，极可能是 60 次/小时限流或共享 IP 连坐"
+
+msgid "Suggestion: export GITHUB_TOKEN=ghp_xxx and retry"
+msgstr "建议：export GITHUB_TOKEN=ghp_xxx 后重试"
+
+msgid "If rate-limited, check X-RateLimit-Remaining / Retry-After response headers"
+msgstr "若为限流，请检查响应头 X-RateLimit-Remaining / Retry-After"
+
+msgid "Repository or endpoint not found (HTTP 404): check repo name or token permissions"
+msgstr "仓库或端点不存在（HTTP 404）：检查仓库名或令牌权限"
+
+msgid "Rate limit exceeded (HTTP 429): retry later"
+msgstr "触发速率限制（HTTP 429）：请稍后重试"
+
+msgid "No HTTP response received (000): network-layer failure; no server-side details available"
+msgstr "未收到 HTTP 响应（000）：网络层失败，无法从服务端获取更多信息"
+
+msgid "Check: connectivity / DNS / proxy / firewall / TLS certificates"
+msgstr "排查方向：网络连通性 / DNS 解析 / 代理配置 / 防火墙 / TLS 证书"
+
+msgid "GitHub server error (HTTP %s): retry later"
+msgstr "GitHub 服务端错误（HTTP %s）：可稍后重试"
+
+msgid "Unexpected status code (HTTP %s): neither an expected HTTP code nor 000"
+msgstr "未知状态码（HTTP %s）：既非预期 HTTP 码也非 000"
+
+msgid "Cloning tag %s (shallow)..."
+msgstr "浅克隆标签 %s ..."
+
+msgid "Updating to tag %s ..."
+msgstr "更新到标签 %s ..."
+
+msgid "Cannot fetch tag %s with shallow clone."
+msgstr "无法使用浅克隆获取标签 %s。"
+
+msgid "Please delete '%s' and re-run, or use a full clone manually."
+msgstr "请删除目录 '%s' 后重新运行，或手动完整克隆。"
+
+msgid "android directory missing"
+msgstr "android 目录不存在"
+
+msgid "Writing local.properties ..."
+msgstr "写入 local.properties ..."
+
+msgid "Project configuration complete!"
+msgstr "项目配置完成！"
+
+# --- cdda-build.sh ---
+msgid "Build failed, retrying %s/%s ..."
+msgstr "构建失败，重试 %s/%s ..."
+
+msgid "Build succeeded!"
+msgstr "构建成功！"
+
+msgid "Build failed after %s retries"
+msgstr "重试 %s 次后仍然失败"
+
+msgid "CDDA Build Failed"
+msgstr "CDDA 构建失败"
+
+msgid "Check logs"
+msgstr "请检查日志"
+
+msgid "Performing clean only..."
+msgstr "仅执行清理..."
+
+msgid "Cleaning..."
+msgstr "执行清理..."
+
+msgid "Auto-set JAVA_HOME=%s"
+msgstr "自动设置 JAVA_HOME=%s"
+
+msgid "java not found, ensure openjdk is installed"
+msgstr "找不到 java 命令，请确保已安装 openjdk"
+
+msgid "aapt2 not executable: %s"
+msgstr "aapt2 不可执行：%s"
+
+msgid "Building %s variant, log: %s"
+msgstr "开始构建 %s 版本，日志：%s"
+
+msgid "Build failed, see log:"
+msgstr "构建失败，请查看日志："
+
+msgid "No valid APK found (size >1MB)"
+msgstr "未找到有效的 APK 文件（大小 >1MB）"
+
+msgid "Build successful! APK location:"
+msgstr "构建成功！APK 位置："
+
+msgid "CDDA Build Complete"
+msgstr "CDDA 构建完成"
+
+msgid "APK generated"
+msgstr "APK 已生成"

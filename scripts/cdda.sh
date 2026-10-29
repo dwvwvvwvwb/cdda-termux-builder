@@ -4,29 +4,33 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/cdda-common.sh"
 
-show_help() {
-    cat <<EOF
-Usage: $0 [command] [options]
+HELP_EN='Usage: ./cdda.sh [command] [options]
 
 Commands:
-  setup [--yes]     Install system dependencies, NDK, and SDK.
-  config [--yes] [tag]   Configure project (tag can be "latest" or a specific tag).
-  build [--clean] [--yes] Build APK (--clean cleans before build).
-  all [--yes] [tag]       Run setup, config, build in sequence.
-  clean                   Only clean build artifacts.
-  help                    Show this help.
+  setup [--yes]              Install system dependencies, NDK, and SDK.
+  config [--yes] [tag]       Configure project (tag can be "latest" or a specific tag).
+  build [--clean] [--yes]    Build APK (--clean cleans before build).
+  all [--yes] [tag]          Run setup, config, build in sequence.
+  clean                      Only clean build artifacts.
+  lang [zh_CN|en]            Set or show the UI language.
+  help                       Show this help.
 
 Environment:
   WORK_DIR        Source directory (default: ~/Cataclysm-DDA)
   BUILD_VARIANT   release or debug (default: release)
   NOTIFY          true/false (default: true)
+  CDDA_LANG       UI language: en/zh_CN (default: auto-detect)
+  GITHUB_TOKEN    Optional GitHub Personal Access Token
 
 Examples:
-  $0 all --yes latest                # Full build from latest release, auto-confirm
-  $0 config --yes cdda-experimental-2026-03-24-2310  # Switch to a specific tag
-  $0 build --clean                   # Clean then build
-  $0 clean                           # Clean only
-EOF
+  ./cdda.sh all --yes latest
+  ./cdda.sh config --yes cdda-experimental-2026-03-24-2310
+  ./cdda.sh build --clean
+  ./cdda.sh clean
+  ./cdda.sh lang zh_CN'
+
+show_help() {
+    printf '%s\n' "$(get_txt "$HELP_EN")"
 }
 
 YES_FLAG=""
@@ -67,6 +71,31 @@ case "$1" in
     clean)
         shift
         "$SCRIPT_DIR/cdda-build.sh" --clean-only
+        ;;
+    lang)
+        shift
+        case "${1:-}" in
+            "")
+                echo "Current: ${CDDA_LANG}"
+                echo "Available:"
+                for f in "$CDDA_LOCALES_DIR"/*.po; do
+                    [ -f "$f" ] || continue
+                    echo "  $(basename "$f" .po)"
+                done
+                echo "  en  (built-in, no .po needed)"
+                ;;
+            *)
+                if [ "$1" = "en" ] || [ -f "$CDDA_LOCALES_DIR/$1.po" ]; then
+                    mkdir -p "$(dirname "$CDDA_LANG_CONF")"
+                    echo "$1" > "$CDDA_LANG_CONF"
+                    echo "Language set to $1"
+                else
+                    echo "Language '$1' not available."
+                    echo "Run '$0 lang' to list available languages."
+                    exit 1
+                fi
+                ;;
+        esac
         ;;
     help|--help|-h)
         show_help
