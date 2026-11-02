@@ -78,6 +78,11 @@ case "$http_code" in
 esac
 
 # ---------- 3. Locate asset URL, size, digest ----------
+ASSET_NAME="cdda-libs-${LIBS_ARCH}-${TARGET_TAG}.7z"
+[ -n "$LIBS_ARCH" ]  || { log_error "LIBS_ARCH is empty"; exit 1; }
+[ -n "$TARGET_TAG" ] || { log_error "TARGET_TAG is empty"; exit 1; }
+log_info "$(printf "$(get_txt "Looking for asset: %s")" "$ASSET_NAME")"
+
 ASSET_INFO=$(printf '%s' "$body" | jq -c --arg n "$ASSET_NAME" \
     '.assets[] | select(.name == $n) | {url: .browser_download_url, size: .size, digest: .digest}')
 ASSET_URL=$(printf '%s' "$ASSET_INFO" | jq -r .url)
@@ -115,7 +120,7 @@ else
     curl -L --retry 3 -o "$CACHED_7Z" "$ASSET_URL" \
         || { log_error "$(get_txt "Download failed")"; rm -f "$CACHED_7Z"; exit 1; }
     verify_7z "$CACHED_7Z" "$ASSET_SIZE" "$ASSET_DIGEST" \
-        || { log_error "$(get_txt "Downloaded file corrupt (size/digest mismatch)"); rm -f "$CACHED_7Z"; exit 1; }
+        || { log_error "$(get_txt "Downloaded file corrupt (size/digest mismatch)")"; rm -f "$CACHED_7Z"; exit 1; }
 fi
 
 # ---------- 5. Extract ----------
@@ -172,9 +177,11 @@ APKSIGNER="$ANDROID_HOME/build-tools/$BUILD_TOOLS/apksigner"
 # Prefer 16KB page alignment (Android 15+); fall back to 4KB
 if [ -x "$ZIPALIGN" ]; then
     if "$ZIPALIGN" -h 2>&1 | grep -q -- '-P'; then
-        "$ZIPALIGN" -f -P 16 "$WORK_APK" "${WORK_APK%.apk}-aligned.apk"
+        # -P 16: 16KB page-align .so (Android 15+). <align> still required.
+        "$ZIPALIGN" -f -P 16 4 "$WORK_APK" "${WORK_APK%.apk}-aligned.apk"
     else
-        "$ZIPALIGN" -f -p 4  "$WORK_APK" "${WORK_APK%.apk}-aligned.apk"
+        # Older build-tools: -p for 4KB page-align.
+        "$ZIPALIGN" -f -p 4 "$WORK_APK" "${WORK_APK%.apk}-aligned.apk"
     fi
     SIGN_IN="${WORK_APK%.apk}-aligned.apk"
 else
