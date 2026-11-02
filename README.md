@@ -114,6 +114,44 @@ Examples
 BUILD_VARIANT=debug NOTIFY=false ./cdda.sh build
 ```
 
+## Patching (official libmain.so)
+
+The self-built `libmain.so` may fail to load localization under certain NDK versions. The `patch` subcommand downloads the pre-extracted official `libmain.so` and `libc++_shared.so` from this repository's releases, replaces them in your built APK, re-signs it, and produces an installable `.apk`.
+
+A GitHub Actions workflow in this repository checks the latest official experimental release every 15 minutes, extracts the two `.so` files, packs them into a 7z archive, and publishes it to this repository's releases using the official tag.
+
+```bash
+# Full pipeline: setup -> config -> build -> patch
+./cdda.sh all --yes latest
+
+# Patch only (APK already built)
+./cdda.sh patch --yes
+
+# Patch a specific tag
+./cdda.sh patch --yes --tag cdda-experimental-2026-10-28-2013
+```
+
+Output: `~/.cdda_patch_cache/cdda-termux-patched-<tag>.apk`
+
+Install directly:
+
+```bash
+termux-open ~/.cdda_patch_cache/cdda-termux-patched-<tag>.apk
+```
+
+### Environment variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `LIBS_REPO` | `dwvwvvwvwb/cdda-termux-builder` | Repository holding the extracted `.so` files |
+| `LIBS_ARCH` | `arm64` | `arm64` (64-bit) or `arm32` (32-bit) |
+| `PATCH_CACHE_DIR` | `~/.cdda_patch_cache` | Cache directory for downloads and intermediates |
+
+### Prerequisites
+
+- `./cdda.sh build` has been run and an APK exists under `~/Cataclysm-DDA/android/app/build/outputs/apk/`;
+- For signing, `~/Cataclysm-DDA/android/keystore.properties` must exist and `apksigner` must be available (otherwise the output APK is unsigned).
+
 GitHub Token (Recommended)
 
 When TAG=latest, the script queries the GitHub Releases API to resolve the latest tag. This endpoint works anonymously, but the rate limits differ significantly:

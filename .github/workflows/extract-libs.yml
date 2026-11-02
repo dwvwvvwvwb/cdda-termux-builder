@@ -1,0 +1,116 @@
+name: Extract official Android libs
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Official tag (empty = latest experimental)'
+        required: false
+        default: ''
+  schedule:
+    - cron: '*/15 * * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: extract-libs
+  cancel-in-progress: false
+
+jobs:
+  extract:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Install deps
+        run: sudo apt-get update && sudo apt-get install -y 7zip-full jq unzip
+
+      - name: Resolve official tag
+        id: resolve
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          if [ -n "$INPUT_TAG" ]; then
+            TAG="$INPUT_TAG"; SKIP=false
+          else
+            TAG=$(gh api repos/CleverRaven/Cataclysm-DDA/releases \
+              --jq '[.[] | select(.tag_name | startswith("cdda-experimental-"))][0].tag_name')
+            PUB=$(gh api "repos/CleverRaven/Cataclysm-DDA/releases/tags/$TAG" --jq .published_at)
+            AGE=$(( $(date -u +%s) - $(date -u -d "$PUB" +%s) ))
+            echo "tag=$TAG age=${AGE}s"
+            [ "$AGE" -lt 1800 ] && SKIP=true || SKIP=false
+          fi
+          echo "tag=$TAG"   >> "$GITHUB_OUTPUT"
+          echo "skip=$SKIP" >> "$GITHUB_OUTPUT"
+
+      - name: Check already released
+        id: check
+        if: steps.resolve.outputs.skip == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.resolve.outputs.tag }}
+        run: |
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "skip=true"  >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check APK assets ready
+        id: assets
+        if: steps.resolve.outputs.skip == 'false' && steps.check.outputs.skip == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.resolve.outputs.tag }}
+        run: |
+          COUNT=$(gh release view "$TAG" --repo CleverRaven/Cataclysm-DDA \
+            --json assets --jq '[.assets[].name | select(startswith("cdda-android-"))] | length')
+          echo "apk_count=$COUNT"
+          [ "$COUNT" -ge 2 ] && echo "ready=true" >> "$GITHUB_OUTPUT" || echo "ready=false" >> "$GITHUB_OUTPUT"
+
+      - name: Download APKs
+        if: steps.assets.outputs.ready == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.resolve.outputs.tag }}
+        run: |
+          mkdir -p apks
+          gh release download "$TAG" --repo CleverRaven/Cataclysm-DDA \
+            --pattern 'cdda-android-*.apk' --dir apks
+
+      - name: Extract and pack
+        if: steps.assets.outputs.ready == 'true'
+        env:
+          TAG: ${{ steps.resolve.outputs.tag }}
+        run: |
+          set -e
+          for apk in apks/*.apk; do
+            base=$(basename "$apk" .apk)
+            case "$base" in
+              *x64*) arch=arm64; abi=arm64-v8a ;;
+              *x32*) arch=arm32; abi=armeabi-v7a ;;
+              *) continue ;;
+            esac
+            rm -rf tmp "work/$arch"; mkdir -p "work/$arch"
+            unzip -o -q "$apk" "lib/$abi/libmain.so" "lib/$abi/libc++_shared.so" -d tmp
+            cp "tmp/lib/$abi/libmain.so"       "work/$arch/"
+            cp "tmp/lib/$abi/libc++_shared.so" "work/$arch/"
+            (cd "work/$arch" && 7z a -t7z -m0=lzma2 -mx=9 -md=64m -mfb=273 -ms=on -mmt=on \
+              "$GITHUB_WORKSPACE/cdda-libs-${arch}-${TAG}.7z" .)
+          done
+
+      - name: Upload release
+        if: steps.assets.outputs.ready == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.resolve.outputs.tag }}
+        run: |
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" ./*.7z --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$TAG" ./*.7z \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "Android libs from $TAG" \
+              --notes "Extracted from official $TAG APK." \
+              --prerelease
+          fi

@@ -10,7 +10,8 @@ Commands:
   setup [--yes]              Install system dependencies, NDK, and SDK.
   config [--yes] [tag]       Configure project (tag can be "latest" or a specific tag).
   build [--clean] [--yes]    Build APK (--clean cleans before build).
-  all [--yes] [tag]          Run setup, config, build in sequence.
+  patch [--yes] [tag]        Patch built APK with official libmain.so + libc++_shared.so.
+  all [--yes] [tag]          Run setup, config, build, patch in sequence.
   clean                      Only clean build artifacts.
   lang [zh_CN|en]            Set or show the UI language.
   help                       Show this help.
@@ -21,9 +22,11 @@ Environment:
   NOTIFY          true/false (default: true)
   CDDA_LANG       UI language: en/zh_CN (default: auto-detect)
   GITHUB_TOKEN    Optional GitHub Personal Access Token
+  LIBS_REPO       Repo holding extracted official libs (default: dwvwvvwvwb/cdda-termux-builder)
 
 Examples:
   ./cdda.sh all --yes latest
+  ./cdda.sh patch --yes
   ./cdda.sh config --yes cdda-experimental-2026-03-24-2310
   ./cdda.sh build --clean
   ./cdda.sh clean
@@ -62,11 +65,16 @@ case "$1" in
         shift
         "$SCRIPT_DIR/cdda-build.sh" "$@" $YES_FLAG
         ;;
+    patch)
+        shift
+        "$SCRIPT_DIR/cdda-patch.sh" $YES_FLAG "$@"
+        ;;
     all)
         shift
         "$SCRIPT_DIR/cdda-setup.sh" $YES_FLAG
         "$SCRIPT_DIR/cdda-config.sh" $YES_FLAG "$@"
         "$SCRIPT_DIR/cdda-build.sh" $YES_FLAG
+        "$SCRIPT_DIR/cdda-patch.sh" $YES_FLAG "$@"
         ;;
     clean)
         shift

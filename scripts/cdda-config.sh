@@ -157,4 +157,8 @@ override_compileSdkVersion=$(find_platform_version)
 override_targetSdkVersion=$(find_platform_version)
 EOF
 
+# Persist the resolved tag so cdda-patch.sh can pick it up
+mkdir -p "$(dirname "$HOME/.config/cdda-termux-builder/last_tag")"
+echo "$TAG" > "$HOME/.config/cdda-termux-builder/last_tag"
+
 log_info "$(get_txt "Project configuration complete!")"

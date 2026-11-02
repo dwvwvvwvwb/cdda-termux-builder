@@ -114,6 +114,44 @@ CDDA_LANG=zh_CN ./cdda.sh all --yes latest
 BUILD_VARIANT=debug NOTIFY=false ./cdda.sh build
 ```
 
+## 打补丁（官方 libmain.so）
+
+自编译的 `libmain.so` 在部分 NDK 版本下存在本地化不加载的问题。`patch` 子命令会从构建器仓库的 release 里下载已提取的官方 `libmain.so` + `libc++_shared.so`，替换进你构建的 APK 并重新签名，输出一个可直接安装的 `.apk`。
+
+构建器仓库的 GitHub Actions 每 15 分钟检查一次官方最新 experimental 版本，自动提取两个 `.so`、7z 打包、发到本仓库的 release（tag 与官方一致）。
+
+```bash
+# 全流程：setup -> config -> build -> patch
+./cdda.sh all --yes latest
+
+# 只打补丁（已构建过）
+./cdda.sh patch --yes
+
+# 指定 tag
+./cdda.sh patch --yes --tag cdda-experimental-2026-10-28-2013
+```
+
+输出：`~/.cdda_patch_cache/cdda-termux-patched-<tag>.apk`
+
+直接安装：
+
+```bash
+termux-open ~/.cdda_patch_cache/cdda-termux-patched-<tag>.apk
+```
+
+### 相关环境变量
+
+| 变量 | 默认值 | 说明 |
+|---|---|---|
+| `LIBS_REPO` | `dwvwvvwvwb/cdda-termux-builder` | 存放已提取 `.so` 的仓库 |
+| `LIBS_ARCH` | `arm64` | `arm64`（64 位）或 `arm32`（32 位） |
+| `PATCH_CACHE_DIR` | `~/.cdda_patch_cache` | 下载和中间文件的缓存目录 |
+
+### 前置条件
+
+- 已运行过 `./cdda.sh build`，`~/Cataclysm-DDA/android/app/build/outputs/apk/` 下存在 APK；
+- 如需签名，`~/Cataclysm-DDA/android/keystore.properties` 存在且 `apksigner` 可用（否则输出未签名 APK）。
+
 GitHub 令牌（推荐）
 
 当 TAG=latest 时，脚本会请求 GitHub Releases API 解析最新标签。该端点可匿名访问，但限流差异很大：

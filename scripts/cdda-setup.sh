@@ -29,7 +29,7 @@ retry_command "pkg update -y" || {
 }
 
 log_step "$(get_txt "Installing required packages...")"
-retry_command "pkg install -y" git make clang curl jq xz-utils gettext openjdk-17 coreutils which cmake ninja ccache || {
+retry_command "pkg install -y" git make clang curl jq xz-utils gettext openjdk-17 coreutils which cmake ninja ccache 7zip zip || {
     log_error "$(get_txt "Failed to install required packages")"
     exit 1
 }
