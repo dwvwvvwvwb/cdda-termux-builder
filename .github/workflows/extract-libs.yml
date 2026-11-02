@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Install deps
-        run: sudo apt-get update && sudo apt-get install -y 7zip-full jq unzip
+        run: sudo apt-get update && sudo apt-get install -y 7zip jq unzip
 
       - name: Resolve official tag
         id: resolve
