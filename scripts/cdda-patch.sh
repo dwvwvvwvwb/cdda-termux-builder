@@ -76,29 +76,51 @@ case "$http_code" in
         ;;
 esac
 
-# ---------- 3. Locate asset URL ----------
-ASSET_NAME="cdda-libs-${LIBS_ARCH}-${TARGET_TAG}.7z"
-ASSET_URL=$(printf '%s' "$body" | jq -r --arg n "$ASSET_NAME" \
-    '.assets[] | select(.name == $n) | .browser_download_url')
+# ---------- 3. Locate asset URL, size, digest ----------
+ASSET_INFO=$(printf '%s' "$body" | jq -c --arg n "$ASSET_NAME" \
+    '.assets[] | select(.name == $n) | {url: .browser_download_url, size: .size, digest: .digest}')
+ASSET_URL=$(printf '%s' "$ASSET_INFO" | jq -r .url)
+ASSET_SIZE=$(printf '%s' "$ASSET_INFO" | jq -r .size)
+ASSET_DIGEST=$(printf '%s' "$ASSET_INFO" | jq -r .digest)
 [ -n "$ASSET_URL" ] && [ "$ASSET_URL" != "null" ] || {
     log_error "$(printf "$(get_txt "Asset %s not found in %s")" "$ASSET_NAME" "$TARGET_TAG")"
     log_error "$(printf '%s' "$body" | jq -r '.assets[].name' 2>/dev/null)"
     exit 1
 }
 
-# ---------- 4. Download libs archive ----------
+# ---------- 4. Download and verify ----------
 CACHED_7Z="$PATCH_CACHE_DIR/$ASSET_NAME"
-if [ ! -f "$CACHED_7Z" ]; then
-    log_info "$(printf "$(get_txt "Downloading %s ...")" "$ASSET_NAME")"
-    curl -L -C - --retry 3 -o "$CACHED_7Z" "$ASSET_URL" \
-        || { log_error "$(get_txt "Download failed")"; rm -f "$CACHED_7Z"; exit 1; }
-else
+
+verify_7z() {
+    local f="$1" size="$2" digest="$3"
+    [ -f "$f" ] || return 1
+    local actual_size
+    actual_size=$(wc -c < "$f" 2>/dev/null | tr -d ' ')
+    [ "$actual_size" = "$size" ] || return 1
+    if [ -n "$digest" ] && [ "$digest" != "null" ]; then
+        local expected actual
+        expected="${digest#sha256:}"
+        actual=$(sha256sum "$f" 2>/dev/null | awk '{print $1}')
+        [ "$actual" = "$expected" ] || return 1
+    fi
+    return 0
+}
+
+if verify_7z "$CACHED_7Z" "$ASSET_SIZE" "$ASSET_DIGEST"; then
     log_info "$(printf "$(get_txt "Using cached %s")" "$CACHED_7Z")"
+else
+    log_info "$(printf "$(get_txt "Downloading %s ...")" "$ASSET_NAME")"
+    rm -f "$CACHED_7Z"
+    curl -L --retry 3 -o "$CACHED_7Z" "$ASSET_URL" \
+        || { log_error "$(get_txt "Download failed")"; rm -f "$CACHED_7Z"; exit 1; }
+    verify_7z "$CACHED_7Z" "$ASSET_SIZE" "$ASSET_DIGEST" \
+        || { log_error "$(get_txt "Downloaded file corrupt (size/digest mismatch)"); rm -f "$CACHED_7Z"; exit 1; }
 fi
 
 # ---------- 5. Extract ----------
-EXTRACT_DIR="$PATCH_CACHE_DIR/extracted-$TARGET_TAG"
-rm -rf "$EXTRACT_DIR"; mkdir -p "$EXTRACT_DIR"
+EXTRACT_DIR=$(mktemp -d "$PATCH_CACHE_DIR/extract.XXXXXX")
+trap 'rm -rf "$EXTRACT_DIR"' EXIT
+
 command -v 7zz >/dev/null || command -v 7z >/dev/null \
     || { log_error "$(get_txt "7z not found; pkg install 7zip or p7zip")"; exit 1; }
 SEVENZ=$(command -v 7zz || command -v 7z)
@@ -115,6 +137,17 @@ log_info "$(printf "$(get_txt "Self-built APK: %s")" "$SELF_APK")"
 WORK_APK="$PATCH_CACHE_DIR/work-$TARGET_TAG.apk"
 cp "$SELF_APK" "$WORK_APK"
 
+# Detect how the original APK stores .so (Stored vs Defl)
+ORIG_METHOD=$(unzip -v "$SELF_APK" 2>/dev/null \
+    | grep "lib/$ABI/libmain.so" | awk '{print $2}')
+case "$ORIG_METHOD" in
+    Stored) ZIP_FLAG="-0" ;;
+    Defl*)  ZIP_FLAG="-9" ;;
+    *)      log_warn "$(printf "$(get_txt "Unknown .so storage: %s, defaulting to Stored")" "${ORIG_METHOD:-empty}")"
+            ZIP_FLAG="-0" ;;
+esac
+log_info "$(printf "$(get_txt "Original .so storage: %s -> zip flag %s")" "${ORIG_METHOD:-unknown}" "$ZIP_FLAG")"
+
 zip -d -q "$WORK_APK" \
     "lib/$ABI/libmain.so" "lib/$ABI/libc++_shared.so" \
     "META-INF/*.RSA" "META-INF/*.SF" "META-INF/MANIFEST.MF" 2>/dev/null || true
@@ -123,7 +156,8 @@ TMP=$(mktemp -d)
 mkdir -p "$TMP/lib/$ABI"
 cp "$EXTRACT_DIR/libmain.so"       "$TMP/lib/$ABI/"
 cp "$EXTRACT_DIR/libc++_shared.so" "$TMP/lib/$ABI/"
-(cd "$TMP" && zip -u -q "$WORK_APK" "lib/$ABI/libmain.so" "lib/$ABI/libc++_shared.so")
+(cd "$TMP" && zip "$ZIP_FLAG" -u -q "$WORK_APK" \
+    "lib/$ABI/libmain.so" "lib/$ABI/libc++_shared.so")
 rm -rf "$TMP"
 
 # ---------- 8. zipalign + re-sign ----------
@@ -134,8 +168,13 @@ BUILD_TOOLS="$(find_build_tools_version)"
 ZIPALIGN="$ANDROID_HOME/build-tools/$BUILD_TOOLS/zipalign"
 APKSIGNER="$ANDROID_HOME/build-tools/$BUILD_TOOLS/apksigner"
 
+# Prefer 16KB page alignment (Android 15+); fall back to 4KB
 if [ -x "$ZIPALIGN" ]; then
-    "$ZIPALIGN" -f 4 "$WORK_APK" "${WORK_APK%.apk}-aligned.apk"
+    if "$ZIPALIGN" -h 2>&1 | grep -q -- '-P'; then
+        "$ZIPALIGN" -f -P 16 "$WORK_APK" "${WORK_APK%.apk}-aligned.apk"
+    else
+        "$ZIPALIGN" -f -p 4  "$WORK_APK" "${WORK_APK%.apk}-aligned.apk"
+    fi
     SIGN_IN="${WORK_APK%.apk}-aligned.apk"
 else
     log_warn "$(get_txt "zipalign not found, skipping")"
