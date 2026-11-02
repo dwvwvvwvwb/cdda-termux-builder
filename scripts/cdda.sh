@@ -84,22 +84,22 @@ case "$1" in
         shift
         case "${1:-}" in
             "")
-                echo "Current: ${CDDA_LANG}"
-                echo "Available:"
+                log_info "Current: %s" "$CDDA_LANG"
+                log_info "Available:"
                 for f in "$CDDA_LOCALES_DIR"/*.po; do
                     [ -f "$f" ] || continue
                     echo "  $(basename "$f" .po)"
                 done
-                echo "  en  (built-in, no .po needed)"
+                log_info "  en  (built-in, no .po needed)"
                 ;;
             *)
                 if [ "$1" = "en" ] || [ -f "$CDDA_LOCALES_DIR/$1.po" ]; then
                     mkdir -p "$(dirname "$CDDA_LANG_CONF")"
                     echo "$1" > "$CDDA_LANG_CONF"
-                    echo "Language set to $1"
+                    log_info "Language set to %s" "$1"
                 else
-                    echo "Language '$1' not available."
-                    echo "Run '$0 lang' to list available languages."
+                    log_error "Language '%s' not available." "$1"
+                    log_info "Run '%s lang' to list available languages." "$0"
                     exit 1
                 fi
                 ;;

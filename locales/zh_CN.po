@@ -6,6 +6,65 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+# --- cdda-build.sh ---
+msgid "Build failed, retrying %s/%s ..."
+msgstr "构建失败，重试 %s/%s ..."
+
+msgid "Build succeeded!"
+msgstr "构建成功！"
+
+#. %s = MAX_RETRY
+msgid "Build failed after %s retries"
+msgstr "重试 %s 次后仍然失败"
+
+msgid "Performing clean only..."
+msgstr "仅执行清理..."
+
+msgid "Cleaning..."
+msgstr "执行清理..."
+
+#. %s = JAVA_HOME path
+msgid "Auto-set JAVA_HOME=%s"
+msgstr "自动设置 JAVA_HOME=%s"
+
+msgid "java not found, ensure openjdk is installed"
+msgstr "找不到 java 命令，请确保已安装 openjdk"
+
+#. %s = aapt2 binary path
+msgid "aapt2 not executable: %s"
+msgstr "aapt2 不可执行：%s"
+
+#. %s = build variant (release/debug), %s = log file path
+msgid "Building %s variant, log: %s"
+msgstr "开始构建 %s 版本，日志：%s"
+
+#. Followed by the build log path
+msgid "Build failed, see log:"
+msgstr "构建失败，请查看日志："
+
+msgid "No valid APK found (size >1MB)"
+msgstr "未找到有效的 APK 文件（大小 >1MB）"
+
+#. Followed by the absolute APK path
+msgid "Build successful! APK location:"
+msgstr "构建成功！APK 位置："
+
+#. Android notification title
+msgid "CDDA Build Complete"
+msgstr "CDDA 构建完成"
+
+#. Android notification body
+msgid "APK generated"
+msgstr "APK 已生成"
+
+#. Android notification title
+msgid "CDDA Build Failed"
+msgstr "CDDA 构建失败"
+
+#. Android notification body when no APK was produced
+msgid "Check logs"
+msgstr "请检查日志"
+
 #. Log level prefix, rendered inside brackets: [INFO] message
 msgid "Info"
 msgstr "信息"
@@ -85,107 +144,6 @@ msgstr "ninja 未安装，请执行：pkg install ninja"
 #. %s = SDK cmake/3.22.1/bin path
 msgid "Created cmake/ninja symlinks for SDK at: %s"
 msgstr "已为 SDK 创建 cmake/ninja 符号链接：%s"
-
-# --- cdda.sh (help text) ---
-msgid ""
-"Usage: ./cdda.sh [command] [options]\n"
-"\n"
-"Commands:\n"
-"  setup [--yes]              Install system dependencies, NDK, and SDK.\n"
-"  config [--yes] [tag]       Configure project (tag can be \"latest\" or a specific tag).\n"
-"  build [--clean] [--yes]    Build APK (--clean cleans before build).\n"
-"  all [--yes] [tag]          Run setup, config, build in sequence.\n"
-"  clean                      Only clean build artifacts.\n"
-"  lang [zh_CN|en]            Set or show the UI language.\n"
-"  help                       Show this help.\n"
-"\n"
-"Environment:\n"
-"  WORK_DIR        Source directory (default: ~/Cataclysm-DDA)\n"
-"  BUILD_VARIANT   release or debug (default: release)\n"
-"  NOTIFY          true/false (default: true)\n"
-"  CDDA_LANG       UI language: en/zh_CN (default: auto-detect)\n"
-"  GITHUB_TOKEN    Optional GitHub Personal Access Token\n"
-"\n"
-"Examples:\n"
-"  ./cdda.sh all --yes latest\n"
-"  ./cdda.sh config --yes cdda-experimental-2026-03-24-2310\n"
-"  ./cdda.sh build --clean\n"
-"  ./cdda.sh clean\n"
-"  ./cdda.sh lang zh_CN"
-msgstr ""
-"用法: ./cdda.sh [命令] [选项]\n"
-"\n"
-"命令:\n"
-"  setup [--yes]              安装系统依赖、NDK 和 SDK。\n"
-"  config [--yes] [tag]       配置项目（tag 可以是 \"latest\" 或具体标签名）。\n"
-"  build [--clean] [--yes]    构建 APK（--clean 可清理后构建）。\n"
-"  all [--yes] [tag]          依次执行 setup, config, build。\n"
-"  clean                      仅清理构建产物。\n"
-"  lang [zh_CN|en]            设置或显示界面语言。\n"
-"  help                       显示帮助。\n"
-"\n"
-"环境变量:\n"
-"  WORK_DIR        源码目录（默认 ~/Cataclysm-DDA）\n"
-"  BUILD_VARIANT   构建变体 release/debug（默认 release）\n"
-"  NOTIFY          是否发送通知 true/false（默认 true）\n"
-"  CDDA_LANG       界面语言 en/zh_CN（默认自动检测）\n"
-"  GITHUB_TOKEN    可选的 GitHub Personal Access Token\n"
-"\n"
-"示例:\n"
-"  ./cdda.sh all --yes latest\n"
-"  ./cdda.sh config --yes cdda-experimental-2026-03-24-2310\n"
-"  ./cdda.sh build --clean\n"
-"  ./cdda.sh clean\n"
-"  ./cdda.sh lang zh_CN"
-
-# --- cdda-setup.sh ---
-msgid "Updating package list..."
-msgstr "更新软件包列表..."
-
-msgid "Failed to update package list, check network"
-msgstr "更新软件包列表失败，请检查网络"
-
-msgid "Installing required packages..."
-msgstr "安装必要软件包..."
-
-msgid "Failed to install required packages"
-msgstr "安装必要软件包失败"
-
-msgid "Checking NDK and SDK..."
-msgstr "检查 NDK 和 SDK..."
-
-msgid "NDK already exists"
-msgstr "NDK 已存在"
-
-msgid "Downloading NDK..."
-msgstr "下载 NDK..."
-
-msgid "NDK download or checksum failed"
-msgstr "NDK 下载或校验失败"
-
-msgid "Extracting NDK..."
-msgstr "解压 NDK..."
-
-msgid "NDK extraction failed: ndk-build not found"
-msgstr "NDK 解压后未找到 ndk-build，可能解压失败"
-
-msgid "SDK already exists"
-msgstr "SDK 已存在"
-
-msgid "Downloading SDK..."
-msgstr "下载 SDK..."
-
-msgid "SDK download or checksum failed"
-msgstr "SDK 下载或校验失败"
-
-msgid "Extracting SDK..."
-msgstr "解压 SDK..."
-
-msgid "SDK extraction failed: build-tools directory not found"
-msgstr "SDK 解压后未找到 build-tools 目录，可能解压失败"
-
-msgid "Environment setup complete!"
-msgstr "环境准备完成！"
 
 # --- cdda-config.sh ---
 msgid "Fetching latest release tag..."
@@ -309,61 +267,253 @@ msgstr "写入 local.properties ..."
 msgid "Project configuration complete!"
 msgstr "项目配置完成！"
 
-# --- cdda-build.sh ---
-msgid "Build failed, retrying %s/%s ..."
-msgstr "构建失败，重试 %s/%s ..."
+msgid "No target tag; run config first or pass --tag"
+msgstr "没有目标标签；请先运行 config 或传入 --tag"
 
-msgid "Build succeeded!"
-msgstr "构建成功！"
+# --- cdda-patch.sh ---
+#. %s = git tag name
+msgid "Target tag: %s"
+msgstr "目标标签：%s"
 
-#. %s = MAX_RETRY
-msgid "Build failed after %s retries"
-msgstr "重试 %s 次后仍然失败"
+msgid "GITHUB_TOKEN not set; anonymous 60/hour limit applies"
+msgstr "未设置 GITHUB_TOKEN；匿名限流 60 次/小时"
+
+msgid "Network error fetching release"
+msgstr "获取发布信息时网络错误"
+
+#. %s = git tag name
+msgid "Libs release not found for tag %s"
+msgstr "未找到标签 %s 的库发布"
+
+msgid "Wait for the libs repo workflow, or trigger it manually"
+msgstr "请等待库仓库的 workflow 完成，或手动触发"
+
+msgid "GitHub API 403: rate limit or permissions"
+msgstr "GitHub API 403：限流或权限问题"
+
+#. %s = HTTP status code
+msgid "Unexpected HTTP %s"
+msgstr "意外的 HTTP %s"
+
+#. %s = asset file name
+msgid "Looking for asset: %s"
+msgstr "查找资源：%s"
+
+#. %s = asset name, %s = tag
+msgid "Asset %s not found in %s"
+msgstr "在 %s 中未找到资源 %s"
+
+#. %s = cached file path
+msgid "Using cached %s"
+msgstr "使用缓存 %s"
+
+#. %s = asset file name
+msgid "Downloading %s ..."
+msgstr "下载 %s ..."
+
+msgid "Download failed"
+msgstr "下载失败"
+
+msgid "Downloaded file corrupt (size/digest mismatch)"
+msgstr "下载的文件损坏（大小/摘要不匹配）"
+
+msgid "7z not found; pkg install 7zip or p7zip"
+msgstr "未找到 7z；请 pkg install 7zip 或 p7zip"
+
+msgid "libmain.so missing in archive"
+msgstr "归档中缺少 libmain.so"
+
+msgid "libc++_shared.so missing in archive"
+msgstr "归档中缺少 libc++_shared.so"
+
+msgid "No self-built APK; run build first"
+msgstr "没有自建 APK；请先运行 build"
+
+#. %s = APK path
+msgid "Self-built APK: %s"
+msgstr "自建 APK：%s"
+
+#. %s = zip storage method (Stored / Defl)
+msgid "Unknown .so storage: %s, defaulting to Stored"
+msgstr "未知的 .so 存储方式：%s，默认使用 Stored"
+
+#. %s = storage method, %s = zip flag
+msgid "Original .so storage: %s -> zip flag %s"
+msgstr "原始 .so 存储方式：%s -> zip 参数 %s"
+
+msgid "zipalign not found, skipping"
+msgstr "未找到 zipalign，跳过"
+
+msgid "Signing patched APK ..."
+msgstr "签名修补后的 APK ..."
+
+msgid "keystore.properties or apksigner missing; patched APK unsigned"
+msgstr "缺少 keystore.properties 或 apksigner；修补后的 APK 未签名"
 
 #. Android notification title
-msgid "CDDA Build Failed"
-msgstr "CDDA 构建失败"
+msgid "CDDA Patch Complete"
+msgstr "CDDA 修补完成"
 
-#. Android notification body when no APK was produced
-msgid "Check logs"
-msgstr "请检查日志"
-
-msgid "Performing clean only..."
-msgstr "仅执行清理..."
-
-msgid "Cleaning..."
-msgstr "执行清理..."
-
-#. %s = JAVA_HOME path
-msgid "Auto-set JAVA_HOME=%s"
-msgstr "自动设置 JAVA_HOME=%s"
-
-msgid "java not found, ensure openjdk is installed"
-msgstr "找不到 java 命令，请确保已安装 openjdk"
-
-#. %s = aapt2 binary path
-msgid "aapt2 not executable: %s"
-msgstr "aapt2 不可执行：%s"
-
-#. %s = build variant (release/debug), %s = log file path
-msgid "Building %s variant, log: %s"
-msgstr "开始构建 %s 版本，日志：%s"
-
-#. Followed by the build log path
-msgid "Build failed, see log:"
-msgstr "构建失败，请查看日志："
-
-msgid "No valid APK found (size >1MB)"
-msgstr "未找到有效的 APK 文件（大小 >1MB）"
-
-#. Followed by the absolute APK path
-msgid "Build successful! APK location:"
-msgstr "构建成功！APK 位置："
+#. Android notification body; %s = file name
+msgid "Patched APK ready: %s"
+msgstr "修补后的 APK 已就绪：%s"
 
 #. Android notification title
-msgid "CDDA Build Complete"
-msgstr "CDDA 构建完成"
+msgid "CDDA Patch Failed"
+msgstr "CDDA 修补失败"
 
 #. Android notification body
-msgid "APK generated"
-msgstr "APK 已生成"
+msgid "Patched APK was not produced; check the log"
+msgstr "未生成修补后的 APK；请检查日志"
+
+msgid "Patch complete!"
+msgstr "修补完成！"
+
+#. %s = value of LIBS_ARCH
+msgid "Unknown LIBS_ARCH: %s"
+msgstr "未知的 LIBS_ARCH：%s"
+
+msgid "LIBS_ARCH is empty"
+msgstr "LIBS_ARCH 为空"
+
+msgid "TARGET_TAG is empty"
+msgstr "TARGET_TAG 为空"
+
+#. %s = patched APK path
+msgid "Output: %s"
+msgstr "输出：%s"
+
+#. %s = patched APK path
+msgid "Install with: termux-open %s"
+msgstr "安装命令：termux-open %s"
+
+# --- cdda-setup.sh ---
+msgid "Updating package list..."
+msgstr "更新软件包列表..."
+
+msgid "Failed to update package list, check network"
+msgstr "更新软件包列表失败，请检查网络"
+
+msgid "Installing required packages..."
+msgstr "安装必要软件包..."
+
+msgid "Failed to install required packages"
+msgstr "安装必要软件包失败"
+
+msgid "Checking NDK and SDK..."
+msgstr "检查 NDK 和 SDK..."
+
+msgid "NDK already exists"
+msgstr "NDK 已存在"
+
+msgid "Downloading NDK..."
+msgstr "下载 NDK..."
+
+msgid "NDK download or checksum failed"
+msgstr "NDK 下载或校验失败"
+
+msgid "Extracting NDK..."
+msgstr "解压 NDK..."
+
+msgid "NDK extraction failed: ndk-build not found"
+msgstr "NDK 解压后未找到 ndk-build，可能解压失败"
+
+msgid "SDK already exists"
+msgstr "SDK 已存在"
+
+msgid "Downloading SDK..."
+msgstr "下载 SDK..."
+
+msgid "SDK download or checksum failed"
+msgstr "SDK 下载或校验失败"
+
+msgid "Extracting SDK..."
+msgstr "解压 SDK..."
+
+msgid "SDK extraction failed: build-tools directory not found"
+msgstr "SDK 解压后未找到 build-tools 目录，可能解压失败"
+
+msgid "Environment setup complete!"
+msgstr "环境准备完成！"
+
+# --- cdda.sh (help text) ---
+msgid ""
+"Usage: ./cdda.sh [command] [options]\n"
+"\n"
+"Commands:\n"
+"  setup [--yes]              Install system dependencies, NDK, and SDK.\n"
+"  config [--yes] [tag]       Configure project (tag can be \"latest\" or a specific tag).\n"
+"  build [--clean] [--yes]    Build APK (--clean cleans before build).\n"
+"  patch [--yes] [tag]        Patch built APK with official libmain.so + libc++_shared.so.\n"
+"  all [--yes] [tag]          Run setup, config, build, patch in sequence.\n"
+"  clean                      Only clean build artifacts.\n"
+"  lang [zh_CN|en]            Set or show the UI language.\n"
+"  help                       Show this help.\n"
+"\n"
+"Environment:\n"
+"  WORK_DIR        Source directory (default: ~/Cataclysm-DDA)\n"
+"  BUILD_VARIANT   release or debug (default: release)\n"
+"  NOTIFY          true/false (default: true)\n"
+"  CDDA_LANG       UI language: en/zh_CN (default: auto-detect)\n"
+"  GITHUB_TOKEN    Optional GitHub Personal Access Token\n"
+"  LIBS_REPO       Repo holding extracted official libs (default: dwvwvvwvwb/cdda-termux-builder)\n"
+"\n"
+"Examples:\n"
+"  ./cdda.sh all --yes latest\n"
+"  ./cdda.sh patch --yes\n"
+"  ./cdda.sh config --yes cdda-experimental-2026-03-24-2310\n"
+"  ./cdda.sh build --clean\n"
+"  ./cdda.sh clean\n"
+"  ./cdda.sh lang zh_CN"
+msgstr ""
+"用法: ./cdda.sh [命令] [选项]\n"
+"\n"
+"命令:\n"
+"  setup [--yes]              安装系统依赖、NDK 和 SDK。\n"
+"  config [--yes] [tag]       配置项目（tag 可以是 \"latest\" 或具体标签名）。\n"
+"  build [--clean] [--yes]    构建 APK（--clean 可清理后构建）。\n"
+"  patch [--yes] [tag]        用官方 libmain.so + libc++_shared.so 修补已构建的 APK。\n"
+"  all [--yes] [tag]          依次执行 setup, config, build, patch。\n"
+"  clean                      仅清理构建产物。\n"
+"  lang [zh_CN|en]            设置或显示界面语言。\n"
+"  help                       显示帮助。\n"
+"\n"
+"环境变量:\n"
+"  WORK_DIR        源码目录（默认 ~/Cataclysm-DDA）\n"
+"  BUILD_VARIANT   构建变体 release/debug（默认 release）\n"
+"  NOTIFY          是否发送通知 true/false（默认 true）\n"
+"  CDDA_LANG       界面语言 en/zh_CN（默认自动检测）\n"
+"  GITHUB_TOKEN    可选的 GitHub Personal Access Token\n"
+"  LIBS_REPO       存放已提取官方库的仓库（默认 dwvwvvwvwb/cdda-termux-builder）\n"
+"\n"
+"示例:\n"
+"  ./cdda.sh all --yes latest\n"
+"  ./cdda.sh patch --yes\n"
+"  ./cdda.sh config --yes cdda-experimental-2026-03-24-2310\n"
+"  ./cdda.sh build --clean\n"
+"  ./cdda.sh clean\n"
+"  ./cdda.sh lang zh_CN"
+
+# --- cdda.sh lang subcommand ---
+#. %s = current language tag
+msgid "Current: %s"
+msgstr "当前：%s"
+
+msgid "Available:"
+msgstr "可用语言："
+
+msgid "  en  (built-in, no .po needed)"
+msgstr "  en  （内置，无需 .po）"
+
+#. %s = language tag
+msgid "Language set to %s"
+msgstr "语言已设置为 %s"
+
+#. %s = language tag
+msgid "Language '%s' not available."
+msgstr "语言 '%s' 不可用。"
+
+#. %s = script path ($0)
+msgid "Run '%s lang' to list available languages."
+msgstr "运行 '%s lang' 查看可用语言。"
+

@@ -19,7 +19,7 @@ case "$LIBS_ARCH" in
   arm32) ABI="armeabi-v7a" ;;
   x64)   ABI="arm64-v8a";   LIBS_ARCH="arm64" ;;
   x32)   ABI="armeabi-v7a"; LIBS_ARCH="arm32" ;;
-  *) log_error "Unknown LIBS_ARCH: $LIBS_ARCH"; exit 1 ;;
+  *) log_error "Unknown LIBS_ARCH: %s" "$LIBS_ARCH"; exit 1 ;;
 esac
 
 TARGET_TAG=""
@@ -229,5 +229,5 @@ fi
 
 # ---------- 11. Report ----------
 log_info "$(get_txt "Patch complete!")"
-log_info "Output: $PATCHED_APK"
-log_info "Install with: termux-open $PATCHED_APK"
+log_info "Output: %s" "$PATCHED_APK"
+log_info "Install with: termux-open %s" "$PATCHED_APK"
