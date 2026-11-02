@@ -301,3 +301,21 @@ setup_cmake_ninja_symlinks() {
 
     log_info "$(printf "$(get_txt "Created cmake/ninja symlinks for SDK at: %s")" "$target_bin_dir")"
 }
+
+# Send a Termux:API notification. No-op if termux-notification is missing.
+# Usage: send_notification <title> <content> [file_to_share]
+send_notification() {
+    local title="$1"
+    local content="$2"
+    local file_path="${3:-}"
+    if [ "${NOTIFY:-true}" = "true" ] && command -v termux-notification &>/dev/null; then
+        if [ -n "$file_path" ] && [ -f "$file_path" ] && command -v termux-share &>/dev/null; then
+            local safe_path
+            safe_path=$(echo "$file_path" | sed 's/"/\\"/g')
+            termux-notification --title "$title" --content "$content" --priority high \
+                --action "termux-share \"$safe_path\""
+        else
+            termux-notification --title "$title" --content "$content" --priority high
+        fi
+    fi
+}

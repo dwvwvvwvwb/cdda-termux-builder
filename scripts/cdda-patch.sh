@@ -12,6 +12,7 @@ LIBS_REPO="${LIBS_REPO:-dwvwvvwvwb/cdda-termux-builder}"
 LIBS_ARCH="${LIBS_ARCH:-arm64}"    # arm64 or arm32, not x64/x32
 ABI="arm64-v8a"                    # keep in sync with LIBS_ARCH
 TAG_STATE="$HOME/.config/cdda-termux-builder/last_tag"
+NOTIFY="${NOTIFY:-true}"
 
 case "$LIBS_ARCH" in
   arm64) ABI="arm64-v8a" ;;
@@ -206,7 +207,20 @@ fi
 # ---------- 9. Cleanup intermediates ----------
 rm -f "$WORK_APK" "${WORK_APK%.apk}-aligned.apk"
 
-# ---------- 10. Report ----------
+# ---------- 10. Notify ----------
+if [ -f "$PATCHED_APK" ]; then
+    send_notification \
+        "$(get_txt "CDDA Patch Complete")" \
+        "$(printf "$(get_txt "Patched APK ready: %s")" "$(basename "$PATCHED_APK")")" \
+        "$PATCHED_APK"
+else
+    send_notification \
+        "$(get_txt "CDDA Patch Failed")" \
+        "$(get_txt "Patched APK was not produced; check the log")" \
+        ""
+fi
+
+# ---------- 11. Report ----------
 log_info "$(get_txt "Patch complete!")"
 log_info "Output: $PATCHED_APK"
 log_info "Install with: termux-open $PATCHED_APK"
