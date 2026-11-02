@@ -83,7 +83,55 @@ bash -c "$(curl -fsSL .../install.sh)" setup --yes
 4. LANG 前缀（标准 Linux）
 5. en
 
-可用语言由 locales/*.po 自动发现。新增语言只需把 .po 文件放进该目录，无需改代码。翻译新语言时，复制 locales/zh_CN.po，修改 Language: 头，翻译 msgstr，运行 ./check-i18n.sh 校验。
+可用语言由 locales/*.po 自动发现。新增语言只需把 .po 文件放进该目录，无需改代码。
+
+### 维护翻译（需要 Python）
+
+普通构建**不需要 Python**。只有维护 locales/*.po 时才需要：
+
+```bash
+pkg install python
+```
+
+然后：
+
+```bash
+# 从源码提取 msgid，合并现有翻译，写回 .po（保留已翻译内容与 #. 注释）
+./scripts/i18n.sh extract zh_CN
+
+# 检查：缺失 / 未翻译 / 多余 / 重复 / 格式错误 / printf 格式符不一致
+./scripts/i18n.sh check
+
+# 翻译完成度
+./scripts/i18n.sh stats
+
+# 新建语言（生成所有 msgid，msgstr 留空）
+./scripts/i18n.sh init ja
+
+# 列出源码中所有 msgid
+./scripts/i18n.sh list
+
+# 找出绕过 log_* / get_txt 的硬编码英文 echo
+./scripts/i18n.sh lint
+```
+
+典型流程：改 .sh 里的文案 → extract → 翻新增的 msgstr → check 变绿。
+
+### 日志与翻译约定
+
+日志函数内部自动完成 get_txt + printf，新代码无需手写 get_txt：
+
+```bash
+log_info "Build succeeded!"
+log_warn "Retry %s/%s" "$r" "$m"
+log_error "Unknown LIBS_ARCH: %s" "$LIBS_ARCH"
+send_notification "CDDA Build Complete" "APK generated" "$apk"
+```
+
+· 变量一律用 %s 占位，不要把 $VAR 拼进 msgid——shell 会先展开，get_txt 查不到原文。
+· get_txt 本身也支持同样写法：get_txt "x %s" "$a"。
+· ./scripts/i18n.sh lint 会列出绕过 `log_*` / `get_txt` 的硬编码英文 `echo`。按单个命令 + 单个字符串判断：输出到文件（`>file` / `>>file`）、pipe 到 `sha256sum`、剥离 `$VAR` / `$(...)` / `${...}` 后为空的一律跳过；`printf` 不扫描；工具自身文件不扫描。
+· 旧写法 log_info "$(get_txt "...")" 依然可用。
 
 持久切换语言：
 

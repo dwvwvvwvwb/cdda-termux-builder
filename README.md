@@ -60,7 +60,8 @@ Commands:
   setup [--yes]              Install system dependencies and the SDK/NDK (first run)
   config [--yes] [tag]       Configure the project (tag can be a specific tag name or "latest")
   build [--clean] [--yes]    Build the APK (--clean cleans first)
-  all [--yes] [tag]          Run setup, config, and build in sequence
+  patch [--yes] [tag]        Patch the built APK with the official libmain.so + libc++_shared.so
+  all [--yes] [tag]          Run setup, config, build, and patch in sequence
   clean                      Remove build artifacts only
   lang [zh_CN|en]            Set or show the UI language
   help                       Show help
@@ -83,7 +84,60 @@ The UI is localized via a single locales/zh_CN.po file in the main branch. On fi
 4. LANG prefix (standard Linux)
 5. en
 
-Available languages are discovered from locales/*.po. Drop a new .po file there to add a language; no code changes needed. To translate a new language, copy locales/zh_CN.po, update the Language: header, translate the msgstr entries, and run ./check-i18n.sh.
+Available languages are discovered from `locales/*.po`. Drop a new `.po` file there to add a language; no code changes needed.
+
+### Maintaining translations (requires Python)
+
+Normal builds **do not require Python**. Python is only needed when maintaining `locales/*.po`:
+
+```bash
+pkg install python
+```
+
+Then:
+
+```bash
+# Extract msgids from source, merge with existing translations, write back to .po
+# (preserves translated strings and #. comments)
+./scripts/i18n.sh extract zh_CN
+
+# Check: missing / untranslated / obsolete / duplicates / format errors /
+# printf specifier mismatches
+./scripts/i18n.sh check
+
+# Translation progress
+./scripts/i18n.sh stats
+
+# Create a new language (all msgids with empty msgstr)
+./scripts/i18n.sh init ja
+
+# List all msgids found in source
+./scripts/i18n.sh list
+
+# Find hardcoded English echo that bypasses log_*/get_txt
+./scripts/i18n.sh lint
+```
+
+Typical workflow: edit the text in a .sh file → extract → translate the new msgstr entries → check until it is green.
+
+The tool auto-scans scripts/*.sh for get_txt "...", get_txt "$VAR" (including multi-line variables such as HELP_EN), log_* "...", and send_notification "title" "content" — no manual .po editing required.
+
+### Logging and translation conventions
+
+Log functions now auto-translate and format, so new code does not need to wrap get_txt by hand:
+
+```bash
+log_info "Build succeeded!"
+log_warn "Retry %s/%s" "$r" "$m"
+log_error "Unknown LIBS_ARCH: %s" "$LIBS_ARCH"
+send_notification "CDDA Build Complete" "APK generated" "$apk"
+```
+
+· Always use %s placeholders for variables; never splice $VAR into the msgid string — the shell expands it first, get_txt will not find the original, and the string becomes untranslatable.
+· get_txt itself supports the same form: get_txt "x %s" "$a".
+· ./scripts/i18n.sh check verifies that msgid and msgstr use identical printf conversion types, so %s accidentally translated as %d is caught early.
+· ./scripts/i18n.sh lint lists hardcoded English echo that bypasses log_* / get_txt. Judgement is per-command and per-string: file redirects (>file, >>file), sha256sum pipes, and strings that reduce to pure variables after $VAR / $(...) / ${...} removal are skipped. printf is not scanned. The tool does not scan itself.
+· The old style log_info "$(get_txt "...")" still works.
 
 Switch persistently:
 
@@ -201,7 +255,7 @@ ccache is installed automatically and enabled by default during builds. It cache
 How It Works
 
 1. Bootstrap – install.sh installs git if missing, shallow-clones the builder repo into ~/cdda-termux-builder, and execs into ./scripts/cdda.sh.
-2. Setup – Installs git, make, clang, curl, jq, xz-utils, gettext, openjdk-17, coreutils, which, cmake, ninja, and ccache via pkg. Downloads and verifies the NDK and SDK from lzhiyong/termux-ndk, and creates cmake/ninja symlinks in the SDK directory.
+2. **Setup** – Installs git, make, clang, curl, jq, xz-utils, gettext, openjdk-17, coreutils, which, cmake, ninja, ccache, 7zip, and zip via pkg. Downloads and verifies the NDK and SDK from lzhiyong/termux-ndk, and creates cmake/ninja symlinks in the SDK directory.
 3. Configure – Shallow-clones the CDDA source and checks out the specified tag. Creates local.properties with the SDK/NDK paths and version overrides.
 4. Build – Temporarily adds buildToolsVersion to app/build.gradle, forces the correct NDK toolchain (linux-x86_64), and runs ./gradlew assembleRelease (or debug). On success, locates the APK (>1MB) and sends a notification.
 
