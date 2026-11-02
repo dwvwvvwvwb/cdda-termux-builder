@@ -63,49 +63,53 @@ CDDA_LANG="$(normalize_lang "$CDDA_LANG")"
 # the hand-written .po parser is a necessary workaround. Do not "optimize" to gettext.
 get_txt() {
     local msgid="$1"
+    shift
     local po_file="$CDDA_LOCALES_DIR/${CDDA_LANG}.po"
+    local result=""
 
-    [ "$CDDA_LANG" = "en" ] && { printf '%s' "$msgid"; return; }
-    [ -f "$po_file" ]       || { printf '%s' "$msgid"; return; }
-
-    local result
-    result=$(CDDA_MSGID="$msgid" awk '
-        BEGIN { RS = ""; FS = "\n"; target = ENVIRON["CDDA_MSGID"] }
-        function unescape(s,   out,i,n,c,c2) {
-            out = ""; n = length(s)
-            for (i = 1; i <= n; i++) {
-                c = substr(s, i, 1)
-                if (c == "\\" && i < n) {
-                    i++; c2 = substr(s, i, 1)
-                    if      (c2 == "n")  out = out "\n"
-                    else if (c2 == "t")  out = out "\t"
-                    else if (c2 == "\"") out = out "\""
-                    else if (c2 == "\\") out = out "\\"
-                    else                 out = out c2
-                } else out = out c
-            }
-            return out
-        }
-        function unquote(s) { sub(/^"/, "", s); sub(/"$/, "", s); return s }
-        {
-            id = ""; str = ""; mode = 0
-            for (i = 1; i <= NF; i++) {
-                line = $i
-                if (line ~ /^msgid /)       { mode = 1; id  = unquote(substr(line, 7)) }
-                else if (line ~ /^msgstr /) { mode = 2; str = unquote(substr(line, 8)) }
-                else if (line ~ /^"/) {
-                    if      (mode == 1) id  = id  unquote(line)
-                    else if (mode == 2) str = str unquote(line)
-                }
-            }
-            if (unescape(id) == target) { print unescape(str); exit }
-        }
-    ' "$po_file")
-
-    if [ -n "$result" ]; then
-        printf '%s' "$result"
+    if [ "$CDDA_LANG" = "en" ] || [ ! -f "$po_file" ]; then
+        result="$msgid"
     else
-        printf '%s' "$msgid"
+        result=$(CDDA_MSGID="$msgid" awk '
+            BEGIN { RS = ""; FS = "\n"; target = ENVIRON["CDDA_MSGID"] }
+            function unescape(s,   out,i,n,c,c2) {
+                out = ""; n = length(s)
+                for (i = 1; i <= n; i++) {
+                    c = substr(s, i, 1)
+                    if (c == "\\" && i < n) {
+                        i++; c2 = substr(s, i, 1)
+                        if      (c2 == "n")  out = out "\n"
+                        else if (c2 == "t")  out = out "\t"
+                        else if (c2 == "\"") out = out "\""
+                        else if (c2 == "\\") out = out "\\"
+                        else                 out = out c2
+                    } else out = out c
+                }
+                return out
+            }
+            function unquote(s) { sub(/^"/, "", s); sub(/"$/, "", s); return s }
+            {
+                id = ""; str = ""; mode = 0
+                for (i = 1; i <= NF; i++) {
+                    line = $i
+                    if (line ~ /^msgid /)       { mode = 1; id  = unquote(substr(line, 7)) }
+                    else if (line ~ /^msgstr /) { mode = 2; str = unquote(substr(line, 8)) }
+                    else if (line ~ /^"/) {
+                        if      (mode == 1) id  = id  unquote(line)
+                        else if (mode == 2) str = str unquote(line)
+                    }
+                }
+                if (unescape(id) == target) { print unescape(str); exit }
+            }
+        ' "$po_file")
+        [ -z "$result" ] && result="$msgid"
+    fi
+
+    if [ $# -gt 0 ]; then
+        # shellcheck disable=SC2059
+        printf "$result" "$@"
+    else
+        printf '%s' "$result"
     fi
 }
 
@@ -114,10 +118,22 @@ TXT_WARN="$(get_txt "Warning")"
 TXT_ERROR="$(get_txt "Error")"
 TXT_STEP="$(get_txt "Step")"
 
-log_info()  { echo -e "${GREEN}[${TXT_INFO}]${NC} $*"; }
-log_warn()  { echo -e "${YELLOW}[${TXT_WARN}]${NC} $*"; }
-log_error() { echo -e "${RED}[${TXT_ERROR}]${NC} $*"; }
-log_step()  { echo -e "${BLUE}[${TXT_STEP}]${NC} $*"; }
+log_info()  { _log "${GREEN}[${TXT_INFO}]${NC}"   "$@"; }
+log_warn()  { _log "${YELLOW}[${TXT_WARN}]${NC}"  "$@"; }
+log_error() { _log "${RED}[${TXT_ERROR}]${NC}"    "$@"; }
+log_step()  { _log "${BLUE}[${TXT_STEP}]${NC}"    "$@"; }
+
+_log() {
+    local _prefix="$1"; shift
+    local _msgid="$1";  shift
+    local _txt
+    _txt="$(get_txt "$_msgid")"
+    if [ $# -gt 0 ]; then
+        # shellcheck disable=SC2059
+        _txt="$(printf "$_txt" "$@")"
+    fi
+    echo -e "${_prefix} ${_txt}"
+}
 
 ANDROID_HOME="${ANDROID_HOME:-$HOME/android-sdk}"
 ANDROID_NDK_HOME="${ANDROID_NDK_HOME:-$HOME/android-ndk-r29}"
@@ -305,8 +321,9 @@ setup_cmake_ninja_symlinks() {
 # Send a Termux:API notification. No-op if termux-notification is missing.
 # Usage: send_notification <title> <content> [file_to_share]
 send_notification() {
-    local title="$1"
-    local content="$2"
+    local title content
+    title="$(get_txt "$1")"
+    content="$(get_txt "$2")"
     local file_path="${3:-}"
     if [ "${NOTIFY:-true}" = "true" ] && command -v termux-notification &>/dev/null; then
         if [ -n "$file_path" ] && [ -f "$file_path" ] && command -v termux-share &>/dev/null; then

@@ -31,20 +31,6 @@ while [ $# -gt 0 ]; do
     esac
 done
 
-send_notification() {
-    local title="$1"
-    local content="$2"
-    local apk_path="$3"
-    if [ "$NOTIFY" = "true" ] && command -v termux-notification &>/dev/null; then
-        if [ -n "$apk_path" ] && [ -f "$apk_path" ] && command -v termux-share &>/dev/null; then
-            local safe_path=$(echo "$apk_path" | sed 's/"/\\"/g')
-            termux-notification --title "$title" --content "$content" --priority high --action "termux-share \"$safe_path\""
-        else
-            termux-notification --title "$title" --content "$content" --priority high
-        fi
-    fi
-}
-
 retry_build() {
     local retry=0
     local success=0
