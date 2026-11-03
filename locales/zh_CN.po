@@ -145,6 +145,18 @@ msgstr "ninja 未安装，请执行：pkg install ninja"
 msgid "Created cmake/ninja symlinks for SDK at: %s"
 msgstr "已为 SDK 创建 cmake/ninja 符号链接：%s"
 
+msgid "Loaded GITHUB_TOKEN from pass entry '%s'"
+msgstr "已从 pass 条目 '%s' 加载 GITHUB_TOKEN"
+
+msgid "GitHub SSH available; cloning over SSH"
+msgstr "GitHub SSH 可用；使用 SSH 克隆"
+
+msgid "GitHub SSH unavailable; cloning over HTTPS"
+msgstr "GitHub SSH 不可用；使用 HTTPS 克隆"
+
+msgid "To use SSH next time: ssh-add ~/.ssh/id_ed25519"
+msgstr "下次使用 SSH 请先执行：ssh-add ~/.ssh/id_ed25519"
+
 # --- cdda-config.sh ---
 msgid "Fetching latest release tag..."
 msgstr "获取最新发布标签..."
@@ -281,20 +293,6 @@ msgstr "未设置 GITHUB_TOKEN；匿名限流 60 次/小时"
 msgid "Network error fetching release"
 msgstr "获取发布信息时网络错误"
 
-#. %s = git tag name
-msgid "Libs not yet extracted for %s"
-msgstr "尚未为 %s 提取库文件"
-
-msgid "The extraction workflow runs hourly. Please retry in up to 1 hour."
-msgstr "提取工作流每小时运行一次，请最多等待 1 小时后重试。"
-
-msgid "If it is still missing after 1 hour, open an issue at:"
-msgstr "如果 1 小时后仍未出现，请在此提交 issue："
-
-#. %s = LIBS_REPO, %s = target tag; %%20 is a literal %20 in the URL
-msgid "  https://github.com/%s/issues/new?title=extract-libs:%%20%s"
-msgstr "  https://github.com/%s/issues/new?title=extract-libs:%%20%s"
-
 msgid "GitHub API 403: rate limit or permissions"
 msgstr "GitHub API 403：限流或权限问题"
 
@@ -379,6 +377,20 @@ msgstr "修补完成！"
 #. %s = value of LIBS_ARCH
 msgid "Unknown LIBS_ARCH: %s"
 msgstr "未知的 LIBS_ARCH：%s"
+
+#. %s = git tag name
+msgid "Libs not yet extracted for %s"
+msgstr "尚未为 %s 提取库文件"
+
+msgid "The extraction workflow runs hourly. Please retry in up to 1 hour."
+msgstr "提取工作流每小时运行一次，请最多等待 1 小时后重试。"
+
+msgid "If it is still missing after 1 hour, open an issue at:"
+msgstr "如果 1 小时后仍未出现，请在此提交 issue："
+
+#. %s = LIBS_REPO, %s = target tag; %%20 is a literal %20 in the URL
+msgid "  https://github.com/%s/issues/new?title=extract-libs:%%20%s"
+msgstr "  https://github.com/%s/issues/new?title=extract-libs:%%20%s"
 
 msgid "LIBS_ARCH is empty"
 msgstr "LIBS_ARCH 为空"

@@ -135,6 +135,30 @@ _log() {
     echo -e "${_prefix} ${_txt}"
 }
 
+# Resolve GITHUB_TOKEN: explicit env var wins; otherwise try `pass`.
+# Silent no-op when pass is missing, the entry is absent, or decryption is cancelled.
+resolve_github_token() {
+    [ -n "${GITHUB_TOKEN:-}" ] && return 0
+    command -v pass &>/dev/null || return 0
+    local entry="${GITHUB_TOKEN_PASS_ENTRY:-github_token}" tok=""
+    tok="$(pass show "$entry" 2>/dev/null | head -n1)"
+    if [ -n "$tok" ]; then
+        GITHUB_TOKEN="$tok"
+        log_info "$(printf "$(get_txt "Loaded GITHUB_TOKEN from pass entry '%s'")" "$entry")"
+    fi
+    return 0
+}
+
+# Probe GitHub SSH for a repo slug. BatchMode=yes so it never blocks on a
+# passphrase prompt; callers wanting SSH should ssh-add their key first.
+github_ssh_usable() {
+    local slug="${1:-CleverRaven/Cataclysm-DDA}"
+    command -v ssh &>/dev/null || return 1
+    command -v git &>/dev/null || return 1
+    GIT_SSH_COMMAND="ssh -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new" \
+        git ls-remote "git@github.com:${slug}.git" HEAD >/dev/null 2>&1
+}
+
 ANDROID_HOME="${ANDROID_HOME:-$HOME/android-sdk}"
 ANDROID_NDK_HOME="${ANDROID_NDK_HOME:-$HOME/android-ndk-r29}"
 NDK_VERSION="29.0.14206865"

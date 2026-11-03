@@ -24,6 +24,8 @@ if [ "$TAG" = "latest" ]; then
 
     API_URL="https://api.github.com/repos/CleverRaven/Cataclysm-DDA/releases?per_page=1"
 
+    resolve_github_token
+
     # Token is optional: public repos allow anonymous access, but rate limits differ.
     #   With token:    5000 requests/hour (per token)
     #   Without token: 60 requests/hour (per IP), and shared IPs are easily rate-limited
@@ -128,7 +130,17 @@ fi
 # Clone or update repository
 if [ ! -d "$WORK_DIR" ]; then
     log_info "$(printf "$(get_txt "Cloning tag %s (shallow)...")" "$TAG")"
-    git clone --depth 1 --branch "$TAG" https://github.com/CleverRaven/Cataclysm-DDA.git "$WORK_DIR"
+    if github_ssh_usable "CleverRaven/Cataclysm-DDA"; then
+        log_info "$(get_txt "GitHub SSH available; cloning over SSH")"
+        GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10" \
+            git clone --depth 1 --branch "$TAG" \
+            "git@github.com:CleverRaven/Cataclysm-DDA.git" "$WORK_DIR"
+    else
+        log_info "$(get_txt "GitHub SSH unavailable; cloning over HTTPS")"
+        log_info "$(get_txt "To use SSH next time: ssh-add ~/.ssh/id_ed25519")"
+        git clone --depth 1 --branch "$TAG" \
+            "https://github.com/CleverRaven/Cataclysm-DDA.git" "$WORK_DIR"
+    fi
 else
     log_info "$(printf "$(get_txt "Updating to tag %s ...")" "$TAG")"
     cd "$WORK_DIR"

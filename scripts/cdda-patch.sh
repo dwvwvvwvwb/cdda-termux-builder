@@ -41,6 +41,8 @@ fi
 log_info "$(printf "$(get_txt "Target tag: %s")" "$TARGET_TAG")"
 
 # ---------- 2. Query libs repo release via curl ----------
+resolve_github_token
+
 curl_args=(-sS --connect-timeout 15 --max-time 60
            -H "Accept: application/vnd.github+json"
            -w "\n__CODE__%{http_code}")

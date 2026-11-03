@@ -16,6 +16,9 @@ The script handles everything automatically: installing dependencies, downloadin
 - **Optional notifications** – Sends a notification via Termux:API when the build finishes.
 - **Localized UI** – English and Simplified Chinese, switchable at runtime.
 - **Customizable** – Configure the source directory, build variant, notifications, and language via environment variables.
+- **Existing checkout reuse** – If `~/cdda-termux-builder` is already a clone of this repository, `install.sh` reuses it as-is without pulling.
+- **SSH-preferred clone** – `config` probes GitHub SSH first and clones CDDA over `git@github.com:...` when the key is already in `ssh-agent`; otherwise falls back to HTTPS.
+- **Automatic token lookup** – If `pass` is installed and a `github_token` entry exists, `config` and `patch` load it automatically; `export GITHUB_TOKEN` is only needed if you prefer to keep the token elsewhere.
 
 ## Requirements
 
@@ -200,6 +203,7 @@ termux-open ~/.cdda_patch_cache/cdda-termux-patched-<tag>.apk
 | `LIBS_REPO` | `dwvwvvwvwb/cdda-termux-builder` | Repository holding the extracted `.so` files |
 | `LIBS_ARCH` | `arm64` | `arm64` (64-bit) or `arm32` (32-bit) |
 | `PATCH_CACHE_DIR` | `~/.cdda_patch_cache` | Cache directory for downloads and intermediates |
+| `GITHUB_TOKEN_PASS_ENTRY` | `github_token` | `pass` entry name used when GITHUB_TOKEN is unset |
 
 ### Prerequisites
 
@@ -207,6 +211,8 @@ termux-open ~/.cdda_patch_cache/cdda-termux-patched-<tag>.apk
 - For signing, `~/Cataclysm-DDA/android/keystore.properties` must exist and `apksigner` must be available (otherwise the output APK is unsigned).
 
 GitHub Token (Recommended)
+
+If `pass` is installed and a `github_token` entry exists, `config` and `patch` load it automatically — no need to `export GITHUB_TOKEN`. Set `GITHUB_TOKEN_PASS_ENTRY` to use a different entry name; the token must be on the first line of the entry.
 
 When TAG=latest, the script queries the GitHub Releases API to resolve the latest tag. This endpoint works anonymously, but the rate limits differ significantly:
 
@@ -254,32 +260,36 @@ ccache is installed automatically and enabled by default during builds. It cache
 
 How It Works
 
-1. Bootstrap – install.sh installs git if missing, shallow-clones the builder repo into ~/cdda-termux-builder, and execs into ./scripts/cdda.sh.
+1. Bootstrap – install.sh installs git if missing, reuses an existing checkout of this repository at ~/cdda-termux-builder when present (no pull), or shallow-clones it otherwise, then execs into ./scripts/cdda.sh.
 2. **Setup** – Installs git, make, clang, curl, jq, xz-utils, gettext, openjdk-17, coreutils, which, cmake, ninja, ccache, 7zip, and zip via pkg. Downloads and verifies the NDK and SDK from lzhiyong/termux-ndk, and creates cmake/ninja symlinks in the SDK directory.
-3. Configure – Shallow-clones the CDDA source and checks out the specified tag. Creates local.properties with the SDK/NDK paths and version overrides.
+3. Configure – Shallow-clones the CDDA source over SSH when git ls-remote git@github.com:CleverRaven/Cataclysm-DDA.git succeeds (key already in ssh-agent), falling back to HTTPS otherwise, and checks out the specified tag. Resolves GITHUB_TOKEN from pass when unset. Creates local.properties with the SDK/NDK paths and version overrides.
 4. Build – Temporarily adds buildToolsVersion to app/build.gradle, forces the correct NDK toolchain (linux-x86_64), and runs ./gradlew assembleRelease (or debug). On success, locates the APK (>1MB) and sends a notification.
 
 Troubleshooting
 
-"Permission denied" for clang++ in the NDK
+**"Permission denied" for clang++ in the NDK**
 
 The script fixes the symlinks automatically. If the problem persists, delete ~/android-ndk-r29 and rerun ./cdda.sh setup.
 
-Gradle tries to download build-tools 30.0.3
+**Gradle tries to download build-tools 30.0.3**
 
 The script adds buildToolsVersion "35.0.0" (or your highest local version) to build.gradle to block the download. Make sure the SDK contains at least one build-tools version (e.g. 35.0.0).
 
-Wrong Java version
+**Wrong Java version**
 
 The script sets JAVA_HOME to OpenJDK 17 automatically. If multiple Java installations exist, ensure java -version reports OpenJDK 17.
 
-Out of disk space
+**Out of disk space**
 
 Clean old build artifacts and logs: rm -rf ~/Cataclysm-DDA ~/android-ndk-r29 ~/android-sdk ~/.cdda_build_logs/*. The script checks free space at startup and warns.
 
-HTTP 403 when fetching the latest tag
+**HTTP 403 when fetching the latest tag**
 
 Almost always anonymous rate limiting (60 requests/hour per IP). Set GITHUB_TOKEN as described in "GitHub Token" above. The API response body (Bad credentials, API rate limit exceeded, etc.) is printed in the logs to help distinguish authentication failures from rate limiting.
+
+**HTTPS is used even though I have an SSH key**
+
+`config` probes GitHub SSH with `BatchMode=yes`, so it never blocks on a passphrase prompt. Load the key into the agent first: `ssh-add ~/.ssh/id_ed25519` (or use the `ssha` helper), then rerun `./cdda.sh config`.
 
 Acknowledgements
 

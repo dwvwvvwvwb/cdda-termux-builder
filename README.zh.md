@@ -16,6 +16,9 @@
 - **可选通知** – 使用 Termux:API 在构建完成时发送通知。
 - **界面本地化** – 支持英文和简体中文，运行时切换。
 - **可定制** – 通过环境变量自定义源码目录、构建变体、通知开关、语言等。
+- **复用本地仓库** – 如果 `~/cdda-termux-builder` 已经是本仓库的 clone，`install.sh` 直接复用，不再拉取更新。
+- **SSH 优先克隆** – `config` 会先探测 GitHub SSH；`ssh-agent` 中已有密钥时通过 `git@github.com:...` 克隆 CDDA，否则回退到 HTTPS。
+- **自动读取令牌** – 安装了 `pass` 且存有 `github_token` 条目时，`config` 与 `patch` 会自动读取；只有想把令牌放在别处时才需要 `export GITHUB_TOKEN`。
 
 ## 系统要求
 
@@ -194,6 +197,7 @@ termux-open ~/.cdda_patch_cache/cdda-termux-patched-<tag>.apk
 | `LIBS_REPO` | `dwvwvvwvwb/cdda-termux-builder` | 存放已提取 `.so` 的仓库 |
 | `LIBS_ARCH` | `arm64` | `arm64`（64 位）或 `arm32`（32 位） |
 | `PATCH_CACHE_DIR` | `~/.cdda_patch_cache` | 下载和中间文件的缓存目录 |
+| `GITHUB_TOKEN_PASS_ENTRY` | `github_token` | pass 条目名，GITHUB_TOKEN 未设置时使用 |
 
 ### 前置条件
 
@@ -214,6 +218,8 @@ GitHub 令牌（推荐）
 export GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxx
 ./cdda.sh all --yes latest
 ```
+
+如果安装了 `pass` 且存有 `github_token` 条目，`config` 和 `patch` 会自动读取，无需手动 `export`。可用 GITHUB_TOKEN_PASS_ENTRY 指定其他条目名。
 
 · classic token：勾选 repo 即可（公开仓库不勾通常也能读，但勾了更稳）。
 · fine-grained token：选择 CleverRaven/Cataclysm-DDA，权限给 Contents: Read。
@@ -248,32 +254,36 @@ ccache 已自动安装，并在构建时默认启用。它可以缓存编译产�
 
 工作原理
 
-1. 引导 – install.sh 在缺少 git 时安装，浅克隆构建器仓库到 ~/cdda-termux-builder，然后 exec 进入 ./scripts/cdda.sh。
+1. 引导 – install.sh 在缺少 git 时安装；如果 ~/cdda-termux-builder 已存在本仓库的 checkout 就直接复用（不拉取更新），否则浅克隆构建器仓库；随后 exec 进入 ./scripts/cdda.sh。
 2. 安装阶段 – 通过 pkg 安装 git、make、clang、curl、jq、xz-utils、gettext、openjdk-17、coreutils、which、cmake、ninja、ccache。从 lzhiyong/termux-ndk 下载并校验 NDK 和 SDK，并自动创建 cmake/ninja 符号链接到 SDK 目录。
-3. 配置阶段 – 浅克隆 CDDA 源码，切换到指定标签。创建 local.properties，写入 SDK/NDK 路径和版本覆盖。
+3. 配置阶段 – git ls-remote git@github.com:CleverRaven/Cataclysm-DDA.git 成功时（ssh-agent 中已有密钥）通过 SSH 浅克隆 CDDA 源码，否则回退到 HTTPS；切换到指定标签。GITHUB_TOKEN 未设置且装有 pass 时自动读取令牌。创建 local.properties，写入 SDK/NDK 路径和版本覆盖。
 4. 构建阶段 – 临时向 app/build.gradle 添加 buildToolsVersion，强制使用正确的 NDK 工具链（linux-x86_64），运行 ./gradlew assembleRelease（或 debug）。成功后定位 APK（>1MB）并发送通知。
 
 常见问题
 
-NDK 中 clang++ 权限被拒绝
+**NDK 中 clang++ 权限被拒绝**
 
 脚本会自动修复符号链接。如果问题持续，删除 ~/android-ndk-r29 并重新运行 ./cdda.sh setup。
 
-Gradle 试图下载 build-tools 30.0.3
+**Gradle 试图下载 build-tools 30.0.3**
 
 脚本会在 build.gradle 中添加 buildToolsVersion "35.0.0"（或你本地最高版本），阻止下载。请确保 SDK 中至少有一个 build-tools 版本（如 35.0.0）。
 
-Java 版本错误
+**Java 版本错误**
 
 脚本会自动设置 JAVA_HOME 指向 OpenJDK 17。如果安装了多个 Java，确保 java -version 显示为 OpenJDK 17。
 
-磁盘空间不足
+**磁盘空间不足**
 
 清理旧构建产物和日志：rm -rf ~/Cataclysm-DDA ~/android-ndk-r29 ~/android-sdk ~/.cdda_build_logs/*。脚本启动时会检查空间并警告。
 
-获取最新标签时 HTTP 403
+**获取最新标签时 HTTP 403**
 
 几乎都是匿名限流（60 次/小时，按 IP 计）。按上方"GitHub 令牌"设置 GITHUB_TOKEN 即可。API 响应体（Bad credentials、API rate limit exceeded 等）会打印在日志里，便于区分认证失败与限流。
+
+**明明有 SSH 密钥却走了 HTTPS**
+
+config 探测 SSH 时使用 BatchMode=yes，避免卡在密码提示上。请先把密钥加载到 agent：ssh-add ~/.ssh/id_ed25519（或使用 ssha），再重新运行 ./cdda.sh config。
 
 致谢
 
