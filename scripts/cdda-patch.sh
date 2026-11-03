@@ -61,8 +61,10 @@ body=$(printf '%s' "$response" | sed 's/__CODE__[0-9]\{3\}$//')
 case "$http_code" in
     200) ;;
     404)
-        log_error "$(printf "$(get_txt "Libs release not found for tag %s")" "$TARGET_TAG")"
-        log_error "$(get_txt "Wait for the libs repo workflow, or trigger it manually")"
+        log_error "Libs not yet extracted for %s" "$TARGET_TAG"
+        log_error "The extraction workflow runs hourly. Please retry in up to 1 hour."
+        log_error "If it is still missing after 1 hour, open an issue at:"
+        log_error "  https://github.com/%s/issues/new?title=extract-libs:%%20%s" "$LIBS_REPO" "$TARGET_TAG"
         exit 1
         ;;
     403)

@@ -282,11 +282,18 @@ msgid "Network error fetching release"
 msgstr "获取发布信息时网络错误"
 
 #. %s = git tag name
-msgid "Libs release not found for tag %s"
-msgstr "未找到标签 %s 的库发布"
+msgid "Libs not yet extracted for %s"
+msgstr "尚未为 %s 提取库文件"
 
-msgid "Wait for the libs repo workflow, or trigger it manually"
-msgstr "请等待库仓库的 workflow 完成，或手动触发"
+msgid "The extraction workflow runs hourly. Please retry in up to 1 hour."
+msgstr "提取工作流每小时运行一次，请最多等待 1 小时后重试。"
+
+msgid "If it is still missing after 1 hour, open an issue at:"
+msgstr "如果 1 小时后仍未出现，请在此提交 issue："
+
+#. %s = LIBS_REPO, %s = target tag; %%20 is a literal %20 in the URL
+msgid "  https://github.com/%s/issues/new?title=extract-libs:%%20%s"
+msgstr "  https://github.com/%s/issues/new?title=extract-libs:%%20%s"
 
 msgid "GitHub API 403: rate limit or permissions"
 msgstr "GitHub API 403：限流或权限问题"
