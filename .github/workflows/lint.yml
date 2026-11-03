@@ -35,12 +35,10 @@ jobs:
           severity: error
 
       - name: i18n check
-        run: |
-          chmod +x scripts/i18n.sh
-          ./scripts/i18n.sh check
+        run: bash scripts/i18n.sh check
 
       - name: i18n lint
-        run: ./scripts/i18n.sh lint
+        run: bash scripts/i18n.sh lint
 
       - name: i18n stats
-        run: ./scripts/i18n.sh stats
+        run: bash scripts/i18n.sh stats
