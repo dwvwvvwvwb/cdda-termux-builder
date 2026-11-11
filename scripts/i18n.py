@@ -45,7 +45,9 @@ def msgids_in(path):
     out += re.findall(r'get_txt\s+"([^"$][^"]*)"', t)
 
     # get_txt "$VAR" -> VAR='...'
-    for var in set(re.findall(r'get_txt\s+"\$([A-Za-z_][A-Za-z0-9_]*)"', t)):
+    for var in dict.fromkeys(
+        re.findall(r'get_txt\s+"\$([A-Za-z_][A-Za-z0-9_]*)"', t)
+    ):
         v = extract_var(t, var)
         if v is not None:
             out.append(v)
