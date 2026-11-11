@@ -203,8 +203,29 @@ if [ -f "$KEYSTORE_PROPS" ] && [ -x "$APKSIGNER" ]; then
         /*) ;;
         *) store_file="$WORK_DIR/android/$store_file" ;;
     esac
+
+    # Match the source APK's signing schemes so the patched APK doesn't gain
+    # extra schemes (e.g. source is V2-only, patched must stay V2-only).
+    SIGN_SCHEME_ARGS=()
+    _verify_out=$("$APKSIGNER" verify -v "$SELF_APK" 2>/dev/null || true)
+    if printf '%s\n' "$_verify_out" | grep -q 'Verified using v[123] scheme'; then
+        _v1=false; _v2=false; _v3=false
+        if printf '%s\n' "$_verify_out" | grep -q 'Verified using v1 scheme.*: true'; then _v1=true; fi
+        if printf '%s\n' "$_verify_out" | grep -q 'Verified using v2 scheme.*: true'; then _v2=true; fi
+        if printf '%s\n' "$_verify_out" | grep -q 'Verified using v3 scheme.*: true'; then _v3=true; fi
+        SIGN_SCHEME_ARGS=(
+            --v1-signing-enabled "$_v1"
+            --v2-signing-enabled "$_v2"
+            --v3-signing-enabled "$_v3"
+        )
+        log_info "Signing schemes matched to source APK: v1=%s v2=%s v3=%s" "$_v1" "$_v2" "$_v3"
+    else
+        log_warn "Could not detect source APK signing schemes; using apksigner defaults"
+    fi
+
     log_info "$(get_txt "Signing patched APK ...")"
     "$APKSIGNER" sign \
+        "${SIGN_SCHEME_ARGS[@]}" \
         --ks "$store_file" \
         --ks-pass "pass:$store_pass" \
         --key-pass "pass:$key_pass" \

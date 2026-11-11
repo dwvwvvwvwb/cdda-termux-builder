@@ -81,6 +81,9 @@ msgstr "错误"
 msgid "Step"
 msgstr "步骤"
 
+msgid "Loaded GITHUB_TOKEN from pass entry '%s'"
+msgstr "已从 pass 条目 '%s' 加载 GITHUB_TOKEN"
+
 # --- cdda-common.sh ---
 msgid "Command failed, retrying %s/%s ..."
 msgstr "命令失败，重试 %s/%s ..."
@@ -144,18 +147,6 @@ msgstr "ninja 未安装，请执行：pkg install ninja"
 #. %s = SDK cmake/3.22.1/bin path
 msgid "Created cmake/ninja symlinks for SDK at: %s"
 msgstr "已为 SDK 创建 cmake/ninja 符号链接：%s"
-
-msgid "Loaded GITHUB_TOKEN from pass entry '%s'"
-msgstr "已从 pass 条目 '%s' 加载 GITHUB_TOKEN"
-
-msgid "GitHub SSH available; cloning over SSH"
-msgstr "GitHub SSH 可用；使用 SSH 克隆"
-
-msgid "GitHub SSH unavailable; cloning over HTTPS"
-msgstr "GitHub SSH 不可用；使用 HTTPS 克隆"
-
-msgid "To use SSH next time: ssh-add ~/.ssh/id_ed25519"
-msgstr "下次使用 SSH 请先执行：ssh-add ~/.ssh/id_ed25519"
 
 # --- cdda-config.sh ---
 msgid "Fetching latest release tag..."
@@ -257,6 +248,15 @@ msgstr "未知状态码（HTTP %s）：既非预期 HTTP 码也非 000"
 #. %s = git tag name
 msgid "Cloning tag %s (shallow)..."
 msgstr "浅克隆标签 %s ..."
+
+msgid "GitHub SSH available; cloning over SSH"
+msgstr "GitHub SSH 可用；使用 SSH 克隆"
+
+msgid "GitHub SSH unavailable; cloning over HTTPS"
+msgstr "GitHub SSH 不可用；使用 HTTPS 克隆"
+
+msgid "To use SSH next time: ssh-add ~/.ssh/id_ed25519"
+msgstr "下次使用 SSH 请先执行：ssh-add ~/.ssh/id_ed25519"
 
 #. %s = git tag name
 msgid "Updating to tag %s ..."
@@ -397,6 +397,12 @@ msgstr "LIBS_ARCH 为空"
 
 msgid "TARGET_TAG is empty"
 msgstr "TARGET_TAG 为空"
+
+msgid "Signing schemes matched to source APK: v1=%s v2=%s v3=%s"
+msgstr "签名方案已匹配源 APK：v1=%s v2=%s v3=%s"
+
+msgid "Could not detect source APK signing schemes; using apksigner defaults"
+msgstr "无法检测源 APK 的签名方案；使用 apksigner 默认设置"
 
 #. %s = patched APK path
 msgid "Output: %s"
