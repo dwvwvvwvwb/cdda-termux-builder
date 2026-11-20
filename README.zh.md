@@ -133,8 +133,9 @@ send_notification "CDDA Build Complete" "APK generated" "$apk"
 
 · 变量一律用 %s 占位，不要把 $VAR 拼进 msgid——shell 会先展开，get_txt 查不到原文。
 · get_txt 本身也支持同样写法：get_txt "x %s" "$a"。
+· 译文必须保持原文的 %s 顺序：bash 的 printf 不支持 %1$s 这种位置参数，要换语序就改写译文。
 · ./scripts/i18n.sh lint 会列出绕过 `log_*` / `get_txt` 的硬编码英文 `echo`。按单个命令 + 单个字符串判断：输出到文件（`>file` / `>>file`）、pipe 到 `sha256sum`、剥离 `$VAR` / `$(...)` / `${...}` 后为空的一律跳过；`printf` 不扫描；工具自身文件不扫描。
-· 旧写法 log_info "$(get_txt "...")" 依然可用。
+· 全仓库已统一用上面的写法。`log_*` 和 `send_notification` 直接收 msgid，不要再套 `$(get_txt ...)` 或 `$(printf ...)`。
 
 持久切换语言：
 

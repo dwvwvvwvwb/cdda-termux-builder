@@ -138,9 +138,10 @@ send_notification "CDDA Build Complete" "APK generated" "$apk"
 
 · Always use %s placeholders for variables; never splice $VAR into the msgid string — the shell expands it first, get_txt will not find the original, and the string becomes untranslatable.
 · get_txt itself supports the same form: get_txt "x %s" "$a".
+· A translation must keep the msgid's %s order: bash printf has no %1$s positional form, so reword instead of reordering.
 · ./scripts/i18n.sh check verifies that msgid and msgstr use identical printf conversion types, so %s accidentally translated as %d is caught early.
 · ./scripts/i18n.sh lint lists hardcoded English echo that bypasses log_* / get_txt. Judgement is per-command and per-string: file redirects (>file, >>file), sha256sum pipes, and strings that reduce to pure variables after $VAR / $(...) / ${...} removal are skipped. printf is not scanned. The tool does not scan itself.
-· The old style log_info "$(get_txt "...")" still works.
+· The whole tree uses the form above. log_* and send_notification take msgids directly; never wrap them in $(get_txt ...) or $(printf ...) again.
 
 Switch persistently:
 
