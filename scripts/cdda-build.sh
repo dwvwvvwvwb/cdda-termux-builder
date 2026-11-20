@@ -41,16 +41,16 @@ retry_build() {
         else
             retry=$((retry + 1))
             if [ $retry -lt $MAX_RETRY ]; then
-                log_warn "$(printf "$(get_txt "Build failed, retrying %s/%s ...")" "$retry" "$MAX_RETRY")"
+                log_warn "Build failed, retrying %s/%s ..." "$retry" "$MAX_RETRY"
                 sleep 3
             fi
         fi
     done
     if [ $success -eq 1 ]; then
-        log_info "$(get_txt "Build succeeded!")"
+        log_info "Build succeeded!"
         return 0
     else
-        log_error "$(printf "$(get_txt "Build failed after %s retries")" "$MAX_RETRY")"
+        log_error "Build failed after %s retries" "$MAX_RETRY"
         send_notification "CDDA Build Failed" "Check logs" ""
         return 1
     fi
@@ -60,12 +60,12 @@ build_android_core() {
     [ -x "$WORK_DIR/android/gradlew" ] || chmod +x "$WORK_DIR/android/gradlew"
 
     if [ "$DO_CLEAN_ONLY" = true ]; then
-        log_info "$(get_txt "Performing clean only...")"
+        log_info "Performing clean only..."
         cd "$WORK_DIR/android" && ./gradlew clean -Pversion_header_path="$WORK_DIR/src/version.h"
         exit 0
     fi
     if [ "$DO_CLEAN" = true ]; then
-        log_info "$(get_txt "Cleaning...")"
+        log_info "Cleaning..."
         (cd "$WORK_DIR/android" && ./gradlew clean -Pversion_header_path="$WORK_DIR/src/version.h")
     fi
 
@@ -76,9 +76,9 @@ build_android_core() {
             java_path=$(readlink -f $(which java))
             JAVA_HOME=$(dirname $(dirname "$java_path"))
             export JAVA_HOME
-            log_info "$(printf "$(get_txt "Auto-set JAVA_HOME=%s")" "$JAVA_HOME")"
+            log_info "Auto-set JAVA_HOME=%s" "$JAVA_HOME"
         else
-            log_error "$(get_txt "java not found, ensure openjdk is installed")"
+            log_error "java not found, ensure openjdk is installed"
             return 1
         fi
     fi
@@ -102,13 +102,13 @@ echo "android.enableAapt2Daemon=false" >> "$gradle_props"
 
     local aapt2_path="$ANDROID_HOME/build-tools/$build_tools_version/aapt2"
     if [ ! -x "$aapt2_path" ]; then
-        log_error "$(printf "$(get_txt "aapt2 not executable: %s")" "$aapt2_path")"
+        log_error "aapt2 not executable: %s" "$aapt2_path"
         return 1
     fi
 
     clean_old_logs
     local build_log="${BUILD_LOGS_DIR}/build_android_$(date +%Y%m%d_%H%M%S).log"
-    log_info "$(printf "$(get_txt "Building %s variant, log: %s")" "$BUILD_VARIANT" "$build_log")"
+    log_info "Building %s variant, log: %s" "$BUILD_VARIANT" "$build_log"
 
     ./gradlew "assemble${BUILD_VARIANT^}" \
         -Pandroid.aapt2FromMavenOverride="$aapt2_path" \
@@ -120,7 +120,7 @@ echo "android.enableAapt2Daemon=false" >> "$gradle_props"
 
     local gradle_exit=${PIPESTATUS[0]}
     if [ $gradle_exit -ne 0 ]; then
-        log_error "$(get_txt "Build failed, see log:") $build_log"
+        log_error "Build failed, see log: %s" "$build_log"
         return 1
     fi
 
@@ -138,13 +138,13 @@ echo "android.enableAapt2Daemon=false" >> "$gradle_props"
     fi
 
     if [ -z "$apk_file" ]; then
-        log_error "$(get_txt "No valid APK found (size >1MB)")"
+        log_error "No valid APK found (size >1MB)"
         return 1
     fi
 
     local apk_abs_path=$(realpath "$apk_file")
-    log_info "$(get_txt "Build successful! APK location:") $apk_abs_path"
-    send_notification "$(get_txt "CDDA Build Complete")" "$(get_txt "APK generated")" "$apk_abs_path"
+    log_info "Build successful! APK location: %s" "$apk_abs_path"
+    send_notification "CDDA Build Complete" "APK generated" "$apk_abs_path"
     return 0
 }
 

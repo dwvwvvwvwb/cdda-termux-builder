@@ -38,24 +38,16 @@ msgstr "aapt2 不可执行：%s"
 msgid "Building %s variant, log: %s"
 msgstr "开始构建 %s 版本，日志：%s"
 
-#. Followed by the build log path
-msgid "Build failed, see log:"
-msgstr "构建失败，请查看日志："
+#. %s is the build log path
+msgid "Build failed, see log: %s"
+msgstr "构建失败，请查看日志：%s"
 
 msgid "No valid APK found (size >1MB)"
 msgstr "未找到有效的 APK 文件（大小 >1MB）"
 
-#. Followed by the absolute APK path
-msgid "Build successful! APK location:"
-msgstr "构建成功！APK 位置："
-
-#. Android notification title
-msgid "CDDA Build Complete"
-msgstr "CDDA 构建完成"
-
-#. Android notification body
-msgid "APK generated"
-msgstr "APK 已生成"
+#. %s is the absolute APK path
+msgid "Build successful! APK location: %s"
+msgstr "构建成功！APK 位置：%s"
 
 #. Android notification title
 msgid "CDDA Build Failed"
@@ -64,6 +56,14 @@ msgstr "CDDA 构建失败"
 #. Android notification body when no APK was produced
 msgid "Check logs"
 msgstr "请检查日志"
+
+#. Android notification title
+msgid "CDDA Build Complete"
+msgstr "CDDA 构建完成"
+
+#. Android notification body
+msgid "APK generated"
+msgstr "APK 已生成"
 
 #. Log level prefix, rendered inside brackets: [INFO] message
 msgid "Info"
@@ -80,6 +80,9 @@ msgstr "错误"
 #. Log level prefix, rendered inside brackets: [STEP] message
 msgid "Step"
 msgstr "步骤"
+
+msgid "Continue anyway?"
+msgstr "是否继续？"
 
 msgid "Loaded GITHUB_TOKEN from pass entry '%s'"
 msgstr "已从 pass 条目 '%s' 加载 GITHUB_TOKEN"
@@ -118,9 +121,6 @@ msgstr "无法获取磁盘空间信息，跳过检查"
 msgid "Available space %sMB is less than recommended %sMB"
 msgstr "可用空间 %sMB，低于建议值 %sMB"
 
-msgid "Continue anyway?"
-msgstr "是否继续？"
-
 msgid "Input read failed, exiting"
 msgstr "读取输入失败，退出"
 
@@ -148,6 +148,27 @@ msgstr "ninja 未安装，请执行：pkg install ninja"
 msgid "Created cmake/ninja symlinks for SDK at: %s"
 msgstr "已为 SDK 创建 cmake/ninja 符号链接：%s"
 
+msgid "DNS resolution failed (bad hostname / DNS unavailable)"
+msgstr "DNS 解析失败（域名错误 / DNS 服务不可用）"
+
+msgid "TCP connection failed (bad port / firewall / proxy unreachable)"
+msgstr "TCP 连接失败（端口错误 / 防火墙拦截 / 代理不通）"
+
+msgid "Request timed out (--connect-timeout or --max-time exceeded)"
+msgstr "请求超时（--connect-timeout 或 --max-time 触发）"
+
+msgid "Could not resolve proxy host"
+msgstr "无法解析代理主机"
+
+msgid "TLS/SSL handshake failed (certificate issue)"
+msgstr "TLS/SSL 握手失败（证书问题）"
+
+msgid "Transfer interrupted; incomplete data"
+msgstr "传输中断，数据不完整"
+
+msgid "Other network error"
+msgstr "其他网络错误"
+
 # --- cdda-config.sh ---
 msgid "Fetching latest release tag..."
 msgstr "获取最新发布标签..."
@@ -170,48 +191,27 @@ msgstr "匿名限流仅 60 次/小时（按 IP），共享 IP 易被连坐限流
 msgid "Consider: export GITHUB_TOKEN=ghp_xxx to avoid unexpected 403s"
 msgstr "建议 export GITHUB_TOKEN=ghp_xxx 以避免莫名 403"
 
-msgid "DNS resolution failed (bad hostname / DNS unavailable)"
-msgstr "DNS 解析失败（域名错误 / DNS 服务不可用）"
-
-msgid "TCP connection failed (bad port / firewall / proxy unreachable)"
-msgstr "TCP 连接失败（端口错误 / 防火墙拦截 / 代理不通）"
-
-msgid "Request timed out (--connect-timeout or --max-time exceeded)"
-msgstr "请求超时（--connect-timeout 或 --max-time 触发）"
-
-msgid "Could not resolve proxy host"
-msgstr "无法解析代理主机"
-
-msgid "TLS/SSL handshake failed (certificate issue)"
-msgstr "TLS/SSL 握手失败（证书问题）"
-
-msgid "Transfer interrupted; incomplete data"
-msgstr "传输中断，数据不完整"
-
-msgid "Other network error"
-msgstr "其他网络错误"
-
 #. %s = curl exit code, %s = human-readable reason
 msgid "Network-layer failure (curl exit code %s): %s"
 msgstr "网络层失败（curl 退出码 %s）：%s"
 
-#. Precedes raw curl stderr on network-layer failure
-msgid "curl output:"
-msgstr "curl 输出："
+#. %s is raw curl stderr on network-layer failure
+msgid "curl output: %s"
+msgstr "curl 输出：%s"
 
-msgid "Failed to parse latest tag; API response:"
-msgstr "无法解析最新标签，API 响应："
+msgid "Failed to parse latest tag; API response: %s"
+msgstr "无法解析最新标签，API 响应：%s"
 
-#. Followed by the resolved GitHub release tag name
-msgid "Latest tag:"
-msgstr "最新标签："
+#. %s is the resolved GitHub release tag name
+msgid "Latest tag: %s"
+msgstr "最新标签：%s"
 
 msgid "GitHub authentication failed (HTTP 401): token is invalid, expired, or revoked"
 msgstr "GitHub 认证失败（HTTP 401）：令牌无效、过期或被撤销"
 
-#. Precedes the raw HTTP response body on API error; shared by 401/403/404/429/5xx/unknown branches
-msgid "Response:"
-msgstr "响应："
+#. %s is the raw HTTP response body on API error; shared by 401/403/404/429/5xx/unknown branches
+msgid "Response: %s"
+msgstr "响应：%s"
 
 msgid "GitHub API request denied (HTTP 403): insufficient permissions or rate limit exceeded"
 msgstr "GitHub API 被拒绝（HTTP 403）：权限不足或触发限流"
@@ -279,6 +279,14 @@ msgstr "写入 local.properties ..."
 msgid "Project configuration complete!"
 msgstr "项目配置完成！"
 
+#. Android notification body; %s = file name
+msgid "Patched APK ready: %s"
+msgstr "修补后的 APK 已就绪：%s"
+
+#. %s = value of LIBS_ARCH
+msgid "Unknown LIBS_ARCH: %s"
+msgstr "未知的 LIBS_ARCH：%s"
+
 msgid "No target tag; run config first or pass --tag"
 msgstr "没有目标标签；请先运行 config 或传入 --tag"
 
@@ -293,6 +301,20 @@ msgstr "未设置 GITHUB_TOKEN；匿名限流 60 次/小时"
 msgid "Network error fetching release"
 msgstr "获取发布信息时网络错误"
 
+#. %s = git tag name
+msgid "Libs not yet extracted for %s"
+msgstr "尚未为 %s 提取库文件"
+
+msgid "The extraction workflow runs hourly. Please retry in up to 1 hour."
+msgstr "提取工作流每小时运行一次，请最多等待 1 小时后重试。"
+
+msgid "If it is still missing after 1 hour, open an issue at:"
+msgstr "如果 1 小时后仍未出现，请在此提交 issue："
+
+#. %s = LIBS_REPO, %s = target tag; %%20 is a literal %20 in the URL
+msgid "  https://github.com/%s/issues/new?title=extract-libs:%%20%s"
+msgstr "  https://github.com/%s/issues/new?title=extract-libs:%%20%s"
+
 msgid "GitHub API 403: rate limit or permissions"
 msgstr "GitHub API 403：限流或权限问题"
 
@@ -300,13 +322,19 @@ msgstr "GitHub API 403：限流或权限问题"
 msgid "Unexpected HTTP %s"
 msgstr "意外的 HTTP %s"
 
+msgid "LIBS_ARCH is empty"
+msgstr "LIBS_ARCH 为空"
+
+msgid "TARGET_TAG is empty"
+msgstr "TARGET_TAG 为空"
+
 #. %s = asset file name
 msgid "Looking for asset: %s"
 msgstr "查找资源：%s"
 
 #. %s = asset name, %s = tag
 msgid "Asset %s not found in %s"
-msgstr "在 %s 中未找到资源 %s"
+msgstr "资源 %s 未在 %s 中找到"
 
 #. %s = cached file path
 msgid "Using cached %s"
@@ -349,60 +377,20 @@ msgstr "原始 .so 存储方式：%s -> zip 参数 %s"
 msgid "zipalign not found, skipping"
 msgstr "未找到 zipalign，跳过"
 
+msgid "Signing schemes matched to source APK: v1=%s v2=%s v3=%s"
+msgstr "签名方案已匹配源 APK：v1=%s v2=%s v3=%s"
+
+msgid "Could not detect source APK signing schemes; using apksigner defaults"
+msgstr "无法检测源 APK 的签名方案；使用 apksigner 默认设置"
+
 msgid "Signing patched APK ..."
 msgstr "签名修补后的 APK ..."
 
 msgid "keystore.properties or apksigner missing; patched APK unsigned"
 msgstr "缺少 keystore.properties 或 apksigner；修补后的 APK 未签名"
 
-#. Android notification title
-msgid "CDDA Patch Complete"
-msgstr "CDDA 修补完成"
-
-#. Android notification body; %s = file name
-msgid "Patched APK ready: %s"
-msgstr "修补后的 APK 已就绪：%s"
-
-#. Android notification title
-msgid "CDDA Patch Failed"
-msgstr "CDDA 修补失败"
-
-#. Android notification body
-msgid "Patched APK was not produced; check the log"
-msgstr "未生成修补后的 APK；请检查日志"
-
 msgid "Patch complete!"
 msgstr "修补完成！"
-
-#. %s = value of LIBS_ARCH
-msgid "Unknown LIBS_ARCH: %s"
-msgstr "未知的 LIBS_ARCH：%s"
-
-#. %s = git tag name
-msgid "Libs not yet extracted for %s"
-msgstr "尚未为 %s 提取库文件"
-
-msgid "The extraction workflow runs hourly. Please retry in up to 1 hour."
-msgstr "提取工作流每小时运行一次，请最多等待 1 小时后重试。"
-
-msgid "If it is still missing after 1 hour, open an issue at:"
-msgstr "如果 1 小时后仍未出现，请在此提交 issue："
-
-#. %s = LIBS_REPO, %s = target tag; %%20 is a literal %20 in the URL
-msgid "  https://github.com/%s/issues/new?title=extract-libs:%%20%s"
-msgstr "  https://github.com/%s/issues/new?title=extract-libs:%%20%s"
-
-msgid "LIBS_ARCH is empty"
-msgstr "LIBS_ARCH 为空"
-
-msgid "TARGET_TAG is empty"
-msgstr "TARGET_TAG 为空"
-
-msgid "Signing schemes matched to source APK: v1=%s v2=%s v3=%s"
-msgstr "签名方案已匹配源 APK：v1=%s v2=%s v3=%s"
-
-msgid "Could not detect source APK signing schemes; using apksigner defaults"
-msgstr "无法检测源 APK 的签名方案；使用 apksigner 默认设置"
 
 #. %s = patched APK path
 msgid "Output: %s"
@@ -428,8 +416,8 @@ msgstr "安装必要软件包失败"
 msgid "Checking NDK and SDK..."
 msgstr "检查 NDK 和 SDK..."
 
-msgid "NDK already exists"
-msgstr "NDK 已存在"
+msgid "NDK already exists %s"
+msgstr "NDK 已存在：%s"
 
 msgid "Downloading NDK..."
 msgstr "下载 NDK..."
@@ -443,8 +431,8 @@ msgstr "解压 NDK..."
 msgid "NDK extraction failed: ndk-build not found"
 msgstr "NDK 解压后未找到 ndk-build，可能解压失败"
 
-msgid "SDK already exists"
-msgstr "SDK 已存在"
+msgid "SDK already exists %s"
+msgstr "SDK 已存在：%s"
 
 msgid "Downloading SDK..."
 msgstr "下载 SDK..."

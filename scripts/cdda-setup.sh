@@ -22,36 +22,36 @@ done
 
 check_disk_space 15360 "$YES_MODE"
 
-log_step "$(get_txt "Updating package list...")"
+log_step "Updating package list..."
 retry_command "pkg update -y" || {
-    log_error "$(get_txt "Failed to update package list, check network")"
+    log_error "Failed to update package list, check network"
     exit 1
 }
 
-log_step "$(get_txt "Installing required packages...")"
+log_step "Installing required packages..."
 retry_command "pkg install -y" git make clang curl jq xz-utils gettext openjdk-17 coreutils which cmake ninja ccache 7zip zip || {
-    log_error "$(get_txt "Failed to install required packages")"
+    log_error "Failed to install required packages"
     exit 1
 }
 
-log_step "$(get_txt "Checking NDK and SDK...")"
+log_step "Checking NDK and SDK..."
 
 NDK_FILE="ndk.tar.xz"
 NDK_URL="https://github.com/lzhiyong/termux-ndk/releases/download/android-ndk/android-ndk-r29-aarch64.tar.xz"
 if [ -n "$ANDROID_NDK_HOME" ] && [ -d "$ANDROID_NDK_HOME" ] && [ -f "$ANDROID_NDK_HOME/ndk-build" ]; then
-    log_info "$(get_txt "NDK already exists") $ANDROID_NDK_HOME"
+    log_info "NDK already exists %s" "$ANDROID_NDK_HOME"
 else
-    log_info "$(get_txt "Downloading NDK...")"
+    log_info "Downloading NDK..."
     if ! verify_checksum_and_retry "$NDK_FILE" "$NDK_SHA256" "$NDK_URL"; then
-        log_error "$(get_txt "NDK download or checksum failed")"
+        log_error "NDK download or checksum failed"
         exit 1
     fi
 
-    log_info "$(get_txt "Extracting NDK...")"
+    log_info "Extracting NDK..."
     target_dir=$(dirname "$ANDROID_NDK_HOME")
     tar -xf "$NDK_FILE" -C "$target_dir"
     if [ ! -f "$ANDROID_NDK_HOME/ndk-build" ]; then
-        log_error "$(get_txt "NDK extraction failed: ndk-build not found")"
+        log_error "NDK extraction failed: ndk-build not found"
         exit 1
     fi
 
@@ -63,23 +63,23 @@ fi
 SDK_FILE="sdk.tar.xz"
 SDK_URL="https://github.com/lzhiyong/termux-ndk/releases/download/android-sdk/android-sdk-aarch64.tar.xz"
 if [ -n "$ANDROID_HOME" ] && [ -d "$ANDROID_HOME" ] && [ -d "$ANDROID_HOME/build-tools" ]; then
-    log_info "$(get_txt "SDK already exists") $ANDROID_HOME"
+    log_info "SDK already exists %s" "$ANDROID_HOME"
 else
-    log_info "$(get_txt "Downloading SDK...")"
+    log_info "Downloading SDK..."
     if ! verify_checksum_and_retry "$SDK_FILE" "$SDK_SHA256" "$SDK_URL"; then
-        log_error "$(get_txt "SDK download or checksum failed")"
+        log_error "SDK download or checksum failed"
         exit 1
     fi
 
-    log_info "$(get_txt "Extracting SDK...")"
+    log_info "Extracting SDK..."
     target_dir=$(dirname "$ANDROID_HOME")
     tar -xf "$SDK_FILE" -C "$target_dir"
     if [ ! -d "$ANDROID_HOME/build-tools" ]; then
-        log_error "$(get_txt "SDK extraction failed: build-tools directory not found")"
+        log_error "SDK extraction failed: build-tools directory not found"
         exit 1
     fi
     rm "$SDK_FILE"
 fi
 
 setup_cmake_ninja_symlinks
-log_info "$(get_txt "Environment setup complete!")"
+log_info "Environment setup complete!"

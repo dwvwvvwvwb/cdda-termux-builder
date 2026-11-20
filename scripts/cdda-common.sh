@@ -144,7 +144,7 @@ resolve_github_token() {
     tok="$(pass show "$entry" 2>/dev/null | head -n1)"
     if [ -n "$tok" ]; then
         GITHUB_TOKEN="$tok"
-        log_info "$(printf "$(get_txt "Loaded GITHUB_TOKEN from pass entry '%s'")" "$entry")"
+        log_info "Loaded GITHUB_TOKEN from pass entry '%s'" "$entry"
     fi
     return 0
 }
@@ -181,7 +181,7 @@ retry_command() {
         else
             retry=$((retry + 1))
             if [ $retry -lt $max_retries ]; then
-                log_warn "$(printf "$(get_txt "Command failed, retrying %s/%s ...")" "$retry" "$max_retries")"
+                log_warn "Command failed, retrying %s/%s ..." "$retry" "$max_retries"
                 sleep 3
             fi
         fi
@@ -199,7 +199,7 @@ download_with_retry() {
             return 0
         else
             retry=$((retry + 1))
-            log_warn "$(printf "$(get_txt "Download failed, retrying %s/%s ...")" "$retry" "$max_retries")"
+            log_warn "Download failed, retrying %s/%s ..." "$retry" "$max_retries"
             sleep 3
         fi
     done
@@ -215,24 +215,24 @@ verify_checksum_and_retry() {
 
     while [ $retry -lt $max_retries ]; do
         if [ ! -f "$file" ]; then
-            log_info "$(get_txt "File does not exist, downloading...")"
+            log_info "File does not exist, downloading..."
             if ! download_with_retry "$url" "$file"; then
-                log_warn "$(printf "$(get_txt "Download failed, retry %s/%s")" "$((retry+1))" "$max_retries")"
+                log_warn "Download failed, retry %s/%s" "$((retry+1))" "$max_retries"
                 retry=$((retry + 1))
                 continue
             fi
         fi
 
-        log_info "$(get_txt "Verifying SHA256...")"
+        log_info "Verifying SHA256..."
         echo "$expected_sha256  $file" | sha256sum -c -
         if [ $? -eq 0 ]; then
             return 0
         else
-            log_warn "$(get_txt "SHA256 mismatch, deleting corrupted file...")"
+            log_warn "SHA256 mismatch, deleting corrupted file..."
             rm -f "$file"
             retry=$((retry + 1))
             if [ $retry -lt $max_retries ]; then
-                log_info "$(printf "$(get_txt "Re-downloading (%s/%s)...")" "$retry" "$max_retries")"
+                log_info "Re-downloading (%s/%s)..." "$retry" "$max_retries"
             fi
         fi
     done
@@ -246,7 +246,7 @@ fix_ndk_clangpp() {
         if [ ! -x "$clangpp" ] || [ ! -s "$clangpp" ]; then
             rm -f "$clangpp"
             ln -s clang "$clangpp"
-            log_info "$(printf "$(get_txt "Fixed %s")" "$clangpp")"
+            log_info "Fixed %s" "$clangpp"
         fi
         chmod +x "$ndk_bin"/*
     fi
@@ -257,19 +257,19 @@ check_disk_space() {
     local yes_mode="${2:-false}"
     local available_kb=$(df -k "$HOME" 2>/dev/null | awk 'NR==2 {print $4}')
     if [ -z "$available_kb" ]; then
-        log_warn "$(get_txt "Cannot determine disk space, skipping check")"
+        log_warn "Cannot determine disk space, skipping check"
         return 0
     fi
     local available_mb=$((available_kb / 1024))
     if [ "$available_mb" -lt "$required_mb" ]; then
-        log_warn "$(printf "$(get_txt "Available space %sMB is less than recommended %sMB")" "$available_mb" "$required_mb")"
+        log_warn "Available space %sMB is less than recommended %sMB" "$available_mb" "$required_mb"
         if [ "$yes_mode" = false ]; then
             set +e
             read -p "$(get_txt "Continue anyway?") (y/N) " answer
             local read_ret=$?
             set -e
             if [ $read_ret -ne 0 ]; then
-                log_error "$(get_txt "Input read failed, exiting")"
+                log_error "Input read failed, exiting"
                 exit 1
             fi
             if [[ ! "$answer" =~ ^[Yy]$ ]]; then
@@ -282,7 +282,7 @@ check_disk_space() {
 find_build_tools_version() {
     local build_tools_dir="$ANDROID_HOME/build-tools"
     if [ ! -d "$build_tools_dir" ]; then
-        log_error "$(printf "$(get_txt "SDK build-tools directory does not exist: %s")" "$build_tools_dir")"
+        log_error "SDK build-tools directory does not exist: %s" "$build_tools_dir"
         return 1
     fi
     local versions=()
@@ -292,7 +292,7 @@ find_build_tools_version() {
         fi
     done
     if [ ${#versions[@]} -eq 0 ]; then
-        log_error "$(get_txt "No build-tools directory containing aapt2 found")"
+        log_error "No build-tools directory containing aapt2 found"
         return 1
     fi
     printf "%s\n" "${versions[@]}" | sort -V | tail -1
@@ -301,7 +301,7 @@ find_build_tools_version() {
 find_platform_version() {
     local platforms_dir="$ANDROID_HOME/platforms"
     if [ ! -d "$platforms_dir" ]; then
-        log_error "$(printf "$(get_txt "SDK platforms directory does not exist: %s")" "$platforms_dir")"
+        log_error "SDK platforms directory does not exist: %s" "$platforms_dir"
         return 1
     fi
     local versions=()
@@ -311,7 +311,7 @@ find_platform_version() {
         fi
     done
     if [ ${#versions[@]} -eq 0 ]; then
-        log_error "$(get_txt "No valid platform directory found")"
+        log_error "No valid platform directory found"
         return 1
     fi
     printf "%s\n" "${versions[@]}" | sort -n | tail -1
@@ -325,11 +325,11 @@ setup_cmake_ninja_symlinks() {
 
     # Check if cmake and ninja are available in Termux
     if ! command -v cmake &>/dev/null; then
-        log_error "$(get_txt "cmake is not installed, please run: pkg install cmake")"
+        log_error "cmake is not installed, please run: pkg install cmake"
         return 1
     fi
     if ! command -v ninja &>/dev/null; then
-        log_error "$(get_txt "ninja is not installed, please run: pkg install ninja")"
+        log_error "ninja is not installed, please run: pkg install ninja"
         return 1
     fi
 
@@ -339,7 +339,7 @@ setup_cmake_ninja_symlinks() {
     ln -sf "$(command -v cmake)" "$target_bin_dir/cmake"
     ln -sf "$(command -v ninja)" "$target_bin_dir/ninja"
 
-    log_info "$(printf "$(get_txt "Created cmake/ninja symlinks for SDK at: %s")" "$target_bin_dir")"
+    log_info "Created cmake/ninja symlinks for SDK at: %s" "$target_bin_dir"
 }
 
 # Send a Termux:API notification. No-op if termux-notification is missing.

@@ -18,9 +18,9 @@ done
 [ -z "$TAG" ] && TAG="latest"
 
 if [ "$TAG" = "latest" ]; then
-    log_step "$(get_txt "Fetching latest release tag...")"
-    command -v curl &>/dev/null || { log_error "$(get_txt "curl is required")"; exit 1; }
-    command -v jq &>/dev/null || { log_error "$(get_txt "jq is required")"; exit 1; }
+    log_step "Fetching latest release tag..."
+    command -v curl &>/dev/null || { log_error "curl is required"; exit 1; }
+    command -v jq &>/dev/null || { log_error "jq is required"; exit 1; }
 
     API_URL="https://api.github.com/repos/CleverRaven/Cataclysm-DDA/releases?per_page=1"
 
@@ -38,11 +38,11 @@ if [ "$TAG" = "latest" ]; then
     )
     if [ -n "${GITHUB_TOKEN:-}" ]; then
         curl_args+=(-H "Authorization: Bearer ${GITHUB_TOKEN}")
-        log_info "$(get_txt "Using GITHUB_TOKEN for authentication")"
+        log_info "Using GITHUB_TOKEN for authentication"
     else
-        log_warn "$(get_txt "GITHUB_TOKEN is not set; falling back to anonymous requests")"
-        log_warn "$(get_txt "Anonymous rate limit is only 60 requests/hour (per IP); shared IPs may be rate-limited")"
-        log_warn "$(get_txt "Consider: export GITHUB_TOKEN=ghp_xxx to avoid unexpected 403s")"
+        log_warn "GITHUB_TOKEN is not set; falling back to anonymous requests"
+        log_warn "Anonymous rate limit is only 60 requests/hour (per IP); shared IPs may be rate-limited"
+        log_warn "Consider: export GITHUB_TOKEN=ghp_xxx to avoid unexpected 403s"
     fi
 
     if response=$(curl "${curl_args[@]}" "$API_URL" 2>&1); then
@@ -62,8 +62,8 @@ if [ "$TAG" = "latest" ]; then
             18) reason="$(get_txt "Transfer interrupted; incomplete data")" ;;
             *) reason="$(get_txt "Other network error")" ;;
         esac
-        log_error "$(printf "$(get_txt "Network-layer failure (curl exit code %s): %s")" "$curl_rc" "$reason")"
-        log_error "$(get_txt "curl output:") ${response}"
+        log_error "Network-layer failure (curl exit code %s): %s" "$curl_rc" "$reason"
+        log_error "curl output: %s" "${response}"
         exit 1
     fi
 
@@ -75,53 +75,53 @@ if [ "$TAG" = "latest" ]; then
         200)
             latest_tag=$(printf '%s' "$body" | jq -r '.[0].tag_name // empty')
             if [ -z "$latest_tag" ]; then
-                log_error "$(get_txt "Failed to parse latest tag; API response:") $body"
+                log_error "Failed to parse latest tag; API response: %s" "$body"
                 exit 1
             fi
             TAG="$latest_tag"
-            log_info "$(get_txt "Latest tag:") $TAG"
+            log_info "Latest tag: %s" "$TAG"
             ;;
         401)
-            log_error "$(get_txt "GitHub authentication failed (HTTP 401): token is invalid, expired, or revoked")"
-            log_error "$(get_txt "Response:") $body"
+            log_error "GitHub authentication failed (HTTP 401): token is invalid, expired, or revoked"
+            log_error "Response: %s" "$body"
             exit 1
             ;;
         403)
-            log_error "$(get_txt "GitHub API request denied (HTTP 403): insufficient permissions or rate limit exceeded")"
+            log_error "GitHub API request denied (HTTP 403): insufficient permissions or rate limit exceeded"
             if [ -z "${GITHUB_TOKEN:-}" ]; then
-                log_error "$(get_txt "Anonymous request: likely the 60/hour limit or shared-IP rate limiting")"
-                log_error "$(get_txt "Suggestion: export GITHUB_TOKEN=ghp_xxx and retry")"
+                log_error "Anonymous request: likely the 60/hour limit or shared-IP rate limiting"
+                log_error "Suggestion: export GITHUB_TOKEN=ghp_xxx and retry"
             else
-                log_error "$(get_txt "If rate-limited, check X-RateLimit-Remaining / Retry-After response headers")"
+                log_error "If rate-limited, check X-RateLimit-Remaining / Retry-After response headers"
             fi
-            log_error "$(get_txt "Response:") $body"
+            log_error "Response: %s" "$body"
             exit 1
             ;;
         404)
-            log_error "$(get_txt "Repository or endpoint not found (HTTP 404): check repo name or token permissions")"
-            log_error "$(get_txt "Response:") $body"
+            log_error "Repository or endpoint not found (HTTP 404): check repo name or token permissions"
+            log_error "Response: %s" "$body"
             exit 1
             ;;
         429)
-            log_error "$(get_txt "Rate limit exceeded (HTTP 429): retry later")"
-            log_error "$(get_txt "Response:") $body"
+            log_error "Rate limit exceeded (HTTP 429): retry later"
+            log_error "Response: %s" "$body"
             exit 1
             ;;
         000)
             # Defensive branch: curl received no HTTP response at all.
-            log_error "$(get_txt "No HTTP response received (000): network-layer failure; no server-side details available")"
-            log_error "$(get_txt "Check: connectivity / DNS / proxy / firewall / TLS certificates")"
-            [ -n "$body" ] && log_error "$(get_txt "curl output:") $body"
+            log_error "No HTTP response received (000): network-layer failure; no server-side details available"
+            log_error "Check: connectivity / DNS / proxy / firewall / TLS certificates"
+            [ -n "$body" ] && log_error "curl output: %s" "$body"
             exit 1
             ;;
         5??)
-            log_error "$(printf "$(get_txt "GitHub server error (HTTP %s): retry later")" "$http_code")"
-            log_error "$(get_txt "Response:") $body"
+            log_error "GitHub server error (HTTP %s): retry later" "$http_code"
+            log_error "Response: %s" "$body"
             exit 1
             ;;
         *)
-            log_error "$(printf "$(get_txt "Unexpected status code (HTTP %s): neither an expected HTTP code nor 000")" "${http_code:-empty}")"
-            [ -n "$body" ] && log_error "$(get_txt "Response:") $body"
+            log_error "Unexpected status code (HTTP %s): neither an expected HTTP code nor 000" "${http_code:-empty}"
+            [ -n "$body" ] && log_error "Response: %s" "$body"
             exit 1
             ;;
     esac
@@ -129,20 +129,20 @@ fi
 
 # Clone or update repository
 if [ ! -d "$WORK_DIR" ]; then
-    log_info "$(printf "$(get_txt "Cloning tag %s (shallow)...")" "$TAG")"
+    log_info "Cloning tag %s (shallow)..." "$TAG"
     if github_ssh_usable "CleverRaven/Cataclysm-DDA"; then
-        log_info "$(get_txt "GitHub SSH available; cloning over SSH")"
+        log_info "GitHub SSH available; cloning over SSH"
         GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10" \
             git clone --depth 1 --branch "$TAG" \
             "git@github.com:CleverRaven/Cataclysm-DDA.git" "$WORK_DIR"
     else
-        log_info "$(get_txt "GitHub SSH unavailable; cloning over HTTPS")"
-        log_info "$(get_txt "To use SSH next time: ssh-add ~/.ssh/id_ed25519")"
+        log_info "GitHub SSH unavailable; cloning over HTTPS"
+        log_info "To use SSH next time: ssh-add ~/.ssh/id_ed25519"
         git clone --depth 1 --branch "$TAG" \
             "https://github.com/CleverRaven/Cataclysm-DDA.git" "$WORK_DIR"
     fi
 else
-    log_info "$(printf "$(get_txt "Updating to tag %s ...")" "$TAG")"
+    log_info "Updating to tag %s ..." "$TAG"
     cd "$WORK_DIR"
     # Try shallow fetch of the tag itself
     if git fetch origin "+refs/tags/$TAG:refs/tags/$TAG" --depth 1 ; then
@@ -151,15 +151,15 @@ else
     elif git fetch origin "+refs/tags/$TAG^{}:refs/tags/$TAG" --depth 1 ; then
         git checkout "tags/$TAG"
     else
-        log_error "$(printf "$(get_txt "Cannot fetch tag %s with shallow clone.")" "$TAG")"
-        log_error "$(printf "$(get_txt "Please delete '%s' and re-run, or use a full clone manually.")" "$WORK_DIR")"
+        log_error "Cannot fetch tag %s with shallow clone." "$TAG"
+        log_error "Please delete '%s' and re-run, or use a full clone manually." "$WORK_DIR"
         exit 1
     fi
 fi
 
 # Configure local.properties
-cd "$WORK_DIR/android" || { log_error "$(get_txt "android directory missing")"; exit 1; }
-log_step "$(get_txt "Writing local.properties ...")"
+cd "$WORK_DIR/android" || { log_error "android directory missing"; exit 1; }
+log_step "Writing local.properties ..."
 cat > local.properties <<EOF
 j=$(nproc)
 sdk.dir=$ANDROID_HOME
@@ -173,4 +173,4 @@ EOF
 mkdir -p "$(dirname "$HOME/.config/cdda-termux-builder/last_tag")"
 echo "$TAG" > "$HOME/.config/cdda-termux-builder/last_tag"
 
-log_info "$(get_txt "Project configuration complete!")"
+log_info "Project configuration complete!"

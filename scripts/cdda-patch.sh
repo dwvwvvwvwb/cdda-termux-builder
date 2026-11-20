@@ -37,8 +37,8 @@ mkdir -p "$PATCH_CACHE_DIR"
 if [ -z "$TARGET_TAG" ] || [ "$TARGET_TAG" = "latest" ]; then
     [ -f "$TAG_STATE" ] && TARGET_TAG="$(tr -d '[:space:]' < "$TAG_STATE")"
 fi
-[ -n "$TARGET_TAG" ] || { log_error "$(get_txt "No target tag; run config first or pass --tag")"; exit 1; }
-log_info "$(printf "$(get_txt "Target tag: %s")" "$TARGET_TAG")"
+[ -n "$TARGET_TAG" ] || { log_error "No target tag; run config first or pass --tag"; exit 1; }
+log_info "Target tag: %s" "$TARGET_TAG"
 
 # ---------- 2. Query libs repo release via curl ----------
 resolve_github_token
@@ -48,14 +48,14 @@ curl_args=(-sS --connect-timeout 15 --max-time 60
            -w "\n__CODE__%{http_code}")
 if [ -n "${GITHUB_TOKEN:-}" ]; then
     curl_args+=(-H "Authorization: Bearer ${GITHUB_TOKEN}")
-    log_info "$(get_txt "Using GITHUB_TOKEN for authentication")"
+    log_info "Using GITHUB_TOKEN for authentication"
 else
-    log_warn "$(get_txt "GITHUB_TOKEN not set; anonymous 60/hour limit applies")"
+    log_warn "GITHUB_TOKEN not set; anonymous 60/hour limit applies"
 fi
 
 response=$(curl "${curl_args[@]}" \
     "https://api.github.com/repos/$LIBS_REPO/releases/tags/$TARGET_TAG" 2>&1) \
-    || { log_error "$(get_txt "Network error fetching release")"; exit 1; }
+    || { log_error "Network error fetching release"; exit 1; }
 
 http_code=$(printf '%s\n' "$response" | sed -n 's/.*__CODE__\([0-9]\{3\}\)$/\1/p')
 body=$(printf '%s' "$response" | sed 's/__CODE__[0-9]\{3\}$//')
@@ -70,12 +70,12 @@ case "$http_code" in
         exit 1
         ;;
     403)
-        log_error "$(get_txt "GitHub API 403: rate limit or permissions")"
+        log_error "GitHub API 403: rate limit or permissions"
         log_error "$body"
         exit 1
         ;;
     *)
-        log_error "$(printf "$(get_txt "Unexpected HTTP %s")" "$http_code")"
+        log_error "Unexpected HTTP %s" "$http_code"
         log_error "$body"
         exit 1
         ;;
@@ -85,7 +85,7 @@ esac
 ASSET_NAME="cdda-libs-${LIBS_ARCH}-${TARGET_TAG}.7z"
 [ -n "$LIBS_ARCH" ]  || { log_error "LIBS_ARCH is empty"; exit 1; }
 [ -n "$TARGET_TAG" ] || { log_error "TARGET_TAG is empty"; exit 1; }
-log_info "$(printf "$(get_txt "Looking for asset: %s")" "$ASSET_NAME")"
+log_info "Looking for asset: %s" "$ASSET_NAME"
 
 ASSET_INFO=$(printf '%s' "$body" | jq -c --arg n "$ASSET_NAME" \
     '.assets[] | select(.name == $n) | {url: .browser_download_url, size: .size, digest: .digest}')
@@ -93,7 +93,7 @@ ASSET_URL=$(printf '%s' "$ASSET_INFO" | jq -r .url)
 ASSET_SIZE=$(printf '%s' "$ASSET_INFO" | jq -r .size)
 ASSET_DIGEST=$(printf '%s' "$ASSET_INFO" | jq -r .digest)
 [ -n "$ASSET_URL" ] && [ "$ASSET_URL" != "null" ] || {
-    log_error "$(printf "$(get_txt "Asset %s not found in %s")" "$ASSET_NAME" "$TARGET_TAG")"
+    log_error "Asset %s not found in %s" "$ASSET_NAME" "$TARGET_TAG"
     log_error "$(printf '%s' "$body" | jq -r '.assets[].name' 2>/dev/null)"
     exit 1
 }
@@ -117,14 +117,14 @@ verify_7z() {
 }
 
 if verify_7z "$CACHED_7Z" "$ASSET_SIZE" "$ASSET_DIGEST"; then
-    log_info "$(printf "$(get_txt "Using cached %s")" "$CACHED_7Z")"
+    log_info "Using cached %s" "$CACHED_7Z"
 else
-    log_info "$(printf "$(get_txt "Downloading %s ...")" "$ASSET_NAME")"
+    log_info "Downloading %s ..." "$ASSET_NAME"
     rm -f "$CACHED_7Z"
     curl -L --retry 3 -o "$CACHED_7Z" "$ASSET_URL" \
-        || { log_error "$(get_txt "Download failed")"; rm -f "$CACHED_7Z"; exit 1; }
+        || { log_error "Download failed"; rm -f "$CACHED_7Z"; exit 1; }
     verify_7z "$CACHED_7Z" "$ASSET_SIZE" "$ASSET_DIGEST" \
-        || { log_error "$(get_txt "Downloaded file corrupt (size/digest mismatch)")"; rm -f "$CACHED_7Z"; exit 1; }
+        || { log_error "Downloaded file corrupt (size/digest mismatch)"; rm -f "$CACHED_7Z"; exit 1; }
 fi
 
 # ---------- 5. Extract ----------
@@ -132,16 +132,16 @@ EXTRACT_DIR=$(mktemp -d "$PATCH_CACHE_DIR/extract.XXXXXX")
 trap 'rm -rf "$EXTRACT_DIR"' EXIT
 
 command -v 7zz >/dev/null || command -v 7z >/dev/null \
-    || { log_error "$(get_txt "7z not found; pkg install 7zip or p7zip")"; exit 1; }
+    || { log_error "7z not found; pkg install 7zip or p7zip"; exit 1; }
 SEVENZ=$(command -v 7zz || command -v 7z)
 "$SEVENZ" x -y -o"$EXTRACT_DIR" "$CACHED_7Z" >/dev/null
-[ -f "$EXTRACT_DIR/libmain.so" ]       || { log_error "$(get_txt "libmain.so missing in archive")"; exit 1; }
-[ -f "$EXTRACT_DIR/libc++_shared.so" ] || { log_error "$(get_txt "libc++_shared.so missing in archive")"; exit 1; }
+[ -f "$EXTRACT_DIR/libmain.so" ]       || { log_error "libmain.so missing in archive"; exit 1; }
+[ -f "$EXTRACT_DIR/libc++_shared.so" ] || { log_error "libc++_shared.so missing in archive"; exit 1; }
 
 # ---------- 6. Locate self-built APK ----------
 SELF_APK=$(find "$WORK_DIR/android/app/build/outputs/apk" -name "*.apk" -type f -size +1M 2>/dev/null | head -1)
-[ -n "$SELF_APK" ] || { log_error "$(get_txt "No self-built APK; run build first")"; exit 1; }
-log_info "$(printf "$(get_txt "Self-built APK: %s")" "$SELF_APK")"
+[ -n "$SELF_APK" ] || { log_error "No self-built APK; run build first"; exit 1; }
+log_info "Self-built APK: %s" "$SELF_APK"
 
 # ---------- 7. Replace .so and drop old signature ----------
 WORK_APK="$PATCH_CACHE_DIR/work-$TARGET_TAG.apk"
@@ -153,10 +153,10 @@ ORIG_METHOD=$(unzip -v "$SELF_APK" 2>/dev/null \
 case "$ORIG_METHOD" in
     Stored) ZIP_FLAG="-0" ;;
     Defl*)  ZIP_FLAG="-9" ;;
-    *)      log_warn "$(printf "$(get_txt "Unknown .so storage: %s, defaulting to Stored")" "${ORIG_METHOD:-empty}")"
+    *)      log_warn "Unknown .so storage: %s, defaulting to Stored" "${ORIG_METHOD:-empty}"
             ZIP_FLAG="-0" ;;
 esac
-log_info "$(printf "$(get_txt "Original .so storage: %s -> zip flag %s")" "${ORIG_METHOD:-unknown}" "$ZIP_FLAG")"
+log_info "Original .so storage: %s -> zip flag %s" "${ORIG_METHOD:-unknown}" "$ZIP_FLAG"
 
 zip -d -q "$WORK_APK" \
     "lib/$ABI/libmain.so" "lib/$ABI/libc++_shared.so" \
@@ -189,7 +189,7 @@ if [ -x "$ZIPALIGN" ]; then
     fi
     SIGN_IN="${WORK_APK%.apk}-aligned.apk"
 else
-    log_warn "$(get_txt "zipalign not found, skipping")"
+    log_warn "zipalign not found, skipping"
     SIGN_IN="$WORK_APK"
 fi
 
@@ -223,7 +223,7 @@ if [ -f "$KEYSTORE_PROPS" ] && [ -x "$APKSIGNER" ]; then
         log_warn "Could not detect source APK signing schemes; using apksigner defaults"
     fi
 
-    log_info "$(get_txt "Signing patched APK ...")"
+    log_info "Signing patched APK ..."
     "$APKSIGNER" sign \
         "${SIGN_SCHEME_ARGS[@]}" \
         --ks "$store_file" \
@@ -232,7 +232,7 @@ if [ -f "$KEYSTORE_PROPS" ] && [ -x "$APKSIGNER" ]; then
         --out "$PATCHED_APK" \
         "$SIGN_IN"
 else
-    log_warn "$(get_txt "keystore.properties or apksigner missing; patched APK unsigned")"
+    log_warn "keystore.properties or apksigner missing; patched APK unsigned"
     cp "$SIGN_IN" "$PATCHED_APK"
 fi
 
@@ -242,17 +242,17 @@ rm -f "$WORK_APK" "${WORK_APK%.apk}-aligned.apk"
 # ---------- 10. Notify ----------
 if [ -f "$PATCHED_APK" ]; then
     send_notification \
-        "$(get_txt "CDDA Patch Complete")" \
+        "CDDA Patch Complete" \
         "$(printf "$(get_txt "Patched APK ready: %s")" "$(basename "$PATCHED_APK")")" \
         "$PATCHED_APK"
 else
     send_notification \
-        "$(get_txt "CDDA Patch Failed")" \
-        "$(get_txt "Patched APK was not produced; check the log")" \
+        "CDDA Patch Failed" \
+        "Patched APK was not produced; check the log" \
         ""
 fi
 
 # ---------- 11. Report ----------
-log_info "$(get_txt "Patch complete!")"
+log_info "Patch complete!"
 log_info "Output: %s" "$PATCHED_APK"
 log_info "Install with: termux-open %s" "$PATCHED_APK"
