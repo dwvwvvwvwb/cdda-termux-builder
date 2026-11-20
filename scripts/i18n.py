@@ -189,7 +189,8 @@ def write_po(path, lang, msgids, entries):
 
 # ================= printf format specifier =================
 
-_FMT_RE = re.compile(r'%(\d+\$)?[-+ #0]*\d*(?:\.\d+)?[hljztL]?([diouxXeEfgGaAcspn])')
+# bash printf has no positional form (%1$s), so a specifier must not be one.
+_FMT_RE = re.compile(r'%[-+ #0]*\d*(?:\.\d+)?[hljztL]?([diouxXeEfgGaAcspn])')
 
 
 def format_types(s):
@@ -204,7 +205,7 @@ def format_types(s):
             continue
         m = _FMT_RE.match(s, i)
         if m:
-            out.append(m.group(2))
+            out.append(m.group(1))
             i = m.end()
         else:
             i += 1
