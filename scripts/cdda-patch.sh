@@ -243,7 +243,7 @@ rm -f "$WORK_APK" "${WORK_APK%.apk}-aligned.apk"
 if [ -f "$PATCHED_APK" ]; then
     send_notification \
         "CDDA Patch Complete" \
-        "$(printf "$(get_txt "Patched APK ready: %s")" "$(basename "$PATCHED_APK")")" \
+        "$(get_txt "Patched APK ready: %s" "$(basename "$PATCHED_APK")")" \
         "$PATCHED_APK"
 else
     send_notification \

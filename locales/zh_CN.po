@@ -53,13 +53,13 @@ msgstr "构建成功！APK 位置：%s"
 msgid "CDDA Build Failed"
 msgstr "CDDA 构建失败"
 
-#. Android notification body when no APK was produced
-msgid "Check logs"
-msgstr "请检查日志"
-
 #. Android notification title
 msgid "CDDA Build Complete"
 msgstr "CDDA 构建完成"
+
+#. Android notification body when no APK was produced
+msgid "Check logs"
+msgstr "请检查日志"
 
 #. Android notification body
 msgid "APK generated"
@@ -399,6 +399,18 @@ msgstr "输出：%s"
 #. %s = patched APK path
 msgid "Install with: termux-open %s"
 msgstr "安装命令：termux-open %s"
+
+#. Android notification title
+msgid "CDDA Patch Complete"
+msgstr "CDDA 修补完成"
+
+#. Android notification title
+msgid "CDDA Patch Failed"
+msgstr "CDDA 修补失败"
+
+#. Android notification body when no patched APK was produced
+msgid "Patched APK was not produced; check the log"
+msgstr "未生成修补后的 APK；请检查日志"
 
 # --- cdda-setup.sh ---
 msgid "Updating package list..."

@@ -39,6 +39,9 @@ def extract_var(text, name):
 
 def msgids_in(path):
     t = path.read_text(encoding="utf-8")
+    # Fold shell line continuations ("\" + newline) so a call split over
+    # several lines scans exactly like the same call written on one line.
+    t = re.sub(r'\\[ \t]*\n[ \t]*', ' ', t)
     out = []
 
     # get_txt "literal" (skip strings starting with $)
@@ -57,11 +60,14 @@ def msgids_in(path):
         r'\blog_(?:info|warn|error|step)\s+"([^"$][^"]*)"', t
     )
 
-    # send_notification "title" "content"
-    for m in re.finditer(
-        r'send_notification\s+"([^"$][^"]*)"\s+"([^"$][^"]*)"', t
-    ):
-        out += [m.group(1), m.group(2)]
+    # send_notification "title" ["content"]
+    # The title is always a literal, so scan it on its own: the content may be
+    # a "$(...)" substitution, and requiring both on one line used to drop the
+    # title along with it.
+    out += re.findall(r'send_notification\s+"([^"$][^"]*)"', t)
+    out += re.findall(
+        r'send_notification\s+"[^"]*"\s+"([^"$][^"]*)"', t
+    )
 
     return out
 
