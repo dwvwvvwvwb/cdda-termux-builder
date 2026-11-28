@@ -56,6 +56,44 @@ retry_build() {
     fi
 }
 
+# CI regenerates src/lang_stats.inc from lang/po/*.po; a plain checkout has it
+# empty, and options.cpp hides every language whose percentage is 0, so local
+# APKs otherwise list English only. Rebuild it before Gradle runs.
+generate_lang_stats() {
+    local tree="$1"
+    local stats="$tree/lang/stats"
+    local inc="$tree/src/lang_stats.inc"
+    local po lang t u found=""
+
+    [ -d "$tree/lang/po" ] || return 0
+    if ! command -v msgattrib >/dev/null 2>&1; then
+        log_warn "msgattrib not found, leaving %s as is" "$inc"
+        return 0
+    fi
+
+    mkdir -p "$stats"
+    rm -f "$stats"/*
+
+    for po in "$tree"/lang/po/*.po; do
+        [ -f "$po" ] || continue
+        lang="$(basename "$po" .po)"
+        case "$lang" in placeholder|*DO_NOT_EDIT*) continue ;; esac
+        # msgattrib counts the header entry too; upstream subtracts it as well
+        t=$(msgattrib --translated "$po" | grep -c '^msgid') || true
+        u=$(msgattrib --untranslated "$po" | grep -c '^msgid') || true
+        printf '{"%s"sv, %d, %d},\n' "$lang" "$((t - 1))" "$((u - 1))" > "$stats/$lang"
+        found="$found $lang"
+    done
+
+    if [ -z "$found" ]; then
+        log_warn "no lang/po/*.po found, leaving %s as is" "$inc"
+        return 0
+    fi
+
+    cat "$stats"/* > "$inc"
+    log_info "Regenerated src/lang_stats.inc:%s" "$found"
+}
+
 build_android_core() {
     [ -x "$WORK_DIR/android/gradlew" ] || chmod +x "$WORK_DIR/android/gradlew"
 
@@ -69,7 +107,9 @@ build_android_core() {
         (cd "$WORK_DIR/android" && ./gradlew clean -Pversion_header_path="$WORK_DIR/src/version.h")
     fi
 
-    export NDK_HOST_TAG=linux-x86_64
+    generate_lang_stats "$WORK_DIR"
+
+    export NDK_HOST_TAG=linux-x86_64   # aarch64 NDK 里 linux-aarch64 是指向它的符号链接
 
     if [ -z "$JAVA_HOME" ]; then
         if command -v java >/dev/null 2>&1; then

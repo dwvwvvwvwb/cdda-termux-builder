@@ -7,6 +7,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 # --- cdda-build.sh ---
+msgid "Regenerated src/lang_stats.inc:%s"
+msgstr "已重新生成 src/lang_stats.inc:%s"
+
+msgid "msgattrib not found, leaving %s as is"
+msgstr "未找到 msgattrib，保持 %s 不变"
+
+msgid "no lang/po/*.po found, leaving %s as is"
+msgstr "没有找到 lang/po/*.po，保持 %s 不变"
+
 msgid "Build failed, retrying %s/%s ..."
 msgstr "构建失败，重试 %s/%s ..."
 
